@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/30 16:41:19 by labintei          #+#    #+#             */
-/*   Updated: 2022/07/12 20:40:28 by labintei         ###   ########.fr       */
+/*   Updated: 2022/07/16 19:00:17 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #ifndef	VECTOR_HPP
 #define VECTOR_HPP
 
+#include <iostream>
 #include "vector_iterator.hpp"
 #include "reverse_iterator.hpp"
 #include <memory>
@@ -44,26 +45,26 @@ namespace ft
 			typedef typename allocator_type::difference_type	difference_type;
 		protected:
 			allocator_type	_alloc_type;
-			pointer_type	_array;
+			pointer		_array;
 			size_type	_size;
 			size_type	_capacity;
 		public:
 			
 			vector(const allocator_type& a = allocator_type()): _alloc_type(a){};
-			vector(size_type n, const value_type& _val = value_type(), const allocator_type &a = allocator_type()): _alloc_type(a), _size(n), _capacity(n), _array(NULL)
+			vector(size_type n, const value_type& _val = value_type(), const allocator_type &a = allocator_type()): _alloc_type(a), _array(NULL), _size(n), _capacity(n)
 			{
-				_alloc_type.allocate(_array, _size);
+				_array = _alloc_type.allocate(_size);
 				for(size_type i = 0; i < _size ; i++)
 					_alloc_type.construct(&_array[i], _val);
 			};
 			template<class InputIterator>
 			vector(InputIterator first, InputIterator last, const allocator_type &a = allocator_type(), 
-			typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = NULL): _alloc_type(a), _size(0), _capacity(0), _array(NULL){assign(first, last);};
-			vector(const vector &x): _alloc_type(x._alloc_type), _size(x._size), _capacity(x._capacity), _array(NULL)
+			typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = NULL): _alloc_type(a), _array(NULL), _size(0), _capacity(0){assign(first, last);};
+			vector(const vector &x): _alloc_type(x._alloc_type), _array(NULL), _size(x._size), _capacity(x._capacity)
 			{
 				if(x._array)
 				{
-					_alloc_type.allocate(_array, _capacity);
+					_array = _alloc_type.allocate(_capacity);
 					for(size_type i = 0; i < _size; i++)
 						_alloc_type.construct(&_array[i], x._array[i]);
 				}
@@ -85,14 +86,14 @@ namespace ft
 				_capacity = a._capacity;
 				_size = a._size;	
 				if(a._array)
-					_alloc_type.allocate(_array, a._capacity);
+					_array = _alloc_type.allocate(a._capacity);
 				_array = NULL;
 				for(size_type i = 0; i < _size; i++)
 					_alloc_type.construct(&_array[i], a._array[i]);
 				return *this;	
 			};
 			bool	empty()const{return (_size == 0);};
-			void re_size(size_type n, value_type val = value_type())
+			void	resize(size_type n, value_type val = value_type())
 			{
 				if(n > _capacity)
 					reserve(n);
@@ -122,16 +123,16 @@ namespace ft
 						_alloc_type.destroy(&_array[i]);
 					}
 					if(_array)
-						_alloc_type.dealocate(_array, _capacity);
+						_alloc_type.deallocate(_array, _capacity);
 					_capacity = n;
 					_array = _tmparray;
 				}
 			};	
-			size_type 	capacity(){return	_capacity;};
-			size_type 	size(){	return	_size;};
-			size_type	max_size(){return _alloc_type.max_size();}; // pour avoir la _size d une len
+			size_type 	capacity()const{return	_capacity;};
+			size_type 	size()const{	return	_size;};
+			size_type	max_size()const{return _alloc_type.max_size();}; // pour avoir la _size d une len
 			template<class InputIterator>
-			void	assign(InputIterator first, InputIterator last, typename enable_if<!is_integral<InputIterator>::valuer, InputIterator>::type* = NULL)
+			void	assign(InputIterator first, InputIterator last, typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = NULL)
 			{
 				size_type	i(0);
 				InputIterator	a(first);
@@ -207,31 +208,39 @@ namespace ft
 				insert(pos, 1, value);
 				return(begin() + a);
 			};
-		/*	iterator	insert(iterator pos, size_type n, const reference value)
+			void		insert(iterator pos, size_type n, const value_type& value)
 			{
+				size_type	s = &*pos - &*begin();// donne le start donc au n ieme element
+				size_type	e = &*end() - &*pos;
 
-			}*/
+				if(_size + n > _capacity)
+					reserve(_size + n);
+				_size += n;
+				for(size_type i = 0; i < e; i++)
+					_alloc_type.construct(&_array[_size -1 -i], _array[_size -n -1 - i]);
+				for(size_type i = 0; i < n; i++)
+					_array[s + i] = value;
+			}
 			template<class InputIterator>
 			void insert(iterator pos, InputIterator first, InputIterator last, typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = NULL)
 			{
 				size_type	def_size(0);
 				InputIterator	current(first);
-
+				size_type	s = &*pos - &*begin();
+				size_type	e = &*last - &*pos;
 				while(current++ != last)
 					def_size++;
 				def_size += _size;
 				if(def_size > _capacity)
 					reserve(def_size);
-				value_type&	t(*pos);
-				for(InputIterator j = first, iterator i = pos; j != last ; pos++, j++)
-				{
-					t = (*pos);
-					push_back(t);
-					*pos = *j;
-				}
+				for(size_type i = 0; i < e; i++)
+					_alloc_type.construct(&_array[def_size - 1 - i], _array[_size - 1 -i]);
+				while(first != last)
+					*((begin() + s++)) = *(first++);
+				_size = def_size;
 			};
 			iterator	erase(iterator	pos)
-			{erase(pos, pos + 1);};
+			{return erase(pos, pos + 1);};
 			iterator	erase(iterator first, iterator last) // est un test
 			{
 				iterator	current(begin());
@@ -270,9 +279,9 @@ namespace ft
 	template<class T, class Alloc>
 	bool operator==(const vector<T, Alloc> &x, const vector<T, Alloc> &y)
 	{
-		if(x._size() != y._size())
+		if(x.size() != y.size())
 			return false;
-		return(equal(x.begin().x.end(), y.begin(), y.end()));
+		return(equal(x.begin(), x.end(), y.begin())); // ne prends que troiis arguments comme meme taille ou segfault
 	}
 	template<class T, class Alloc>
 	bool operator!=(const vector<T,Alloc> &x, const vector<T,Alloc> &y){return !(x == y);};
