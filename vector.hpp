@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/30 16:41:19 by labintei          #+#    #+#             */
-/*   Updated: 2022/07/16 19:00:17 by labintei         ###   ########.fr       */
+/*   Updated: 2022/07/17 19:20:07 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,8 @@ namespace ft
 			size_type	_size;
 			size_type	_capacity;
 		public:
-			
-			vector(const allocator_type& a = allocator_type()): _alloc_type(a){};
+			// Par default
+			vector(const allocator_type& a = allocator_type()): _alloc_type(a), _array(NULL), _size(0), _capacity(0){};
 			vector(size_type n, const value_type& _val = value_type(), const allocator_type &a = allocator_type()): _alloc_type(a), _array(NULL), _size(n), _capacity(n)
 			{
 				_array = _alloc_type.allocate(_size);
@@ -87,7 +87,8 @@ namespace ft
 				_size = a._size;	
 				if(a._array)
 					_array = _alloc_type.allocate(a._capacity);
-				_array = NULL;
+				else
+					_array = NULL;
 				for(size_type i = 0; i < _size; i++)
 					_alloc_type.construct(&_array[i], a._array[i]);
 				return *this;	
@@ -110,9 +111,9 @@ namespace ft
 				_size = n;
 			};
 			void reserve(size_type n)
-			{/*
+			{
 				if(n > max_size())
-					throw std::lenght_error("error");*/
+					return;
 				if(n > _capacity)
 				{
 					// met la capacite a la nouvelle taille , copie colle , tmp = _array doit garder l ancienne capacite pour dealocate
@@ -127,6 +128,7 @@ namespace ft
 					_capacity = n;
 					_array = _tmparray;
 				}
+				std::cout << "reserve ok" << std::endl;
 			};	
 			size_type 	capacity()const{return	_capacity;};
 			size_type 	size()const{	return	_size;};
@@ -144,7 +146,7 @@ namespace ft
 				// vide _array simplification fait ici
 				clear();
 				for(size_type u = 0; u < i; u++)
-					_alloc_type.construct(&_array[u], (*first)++);
+					_alloc_type.construct(&_array[u], (*first++)); // POST INCREMENTE LE POINTEUR ET NON LA VALEUR
 				_size = i;
 			};
 			void	assign(size_type n, const value_type &u)
@@ -215,29 +217,62 @@ namespace ft
 
 				if(_size + n > _capacity)
 					reserve(_size + n);
+				std::cout << "ok" << std::endl;
 				_size += n;
 				for(size_type i = 0; i < e; i++)
 					_alloc_type.construct(&_array[_size -1 -i], _array[_size -n -1 - i]);
+				std::cout << "why" << std::endl;
 				for(size_type i = 0; i < n; i++)
 					_array[s + i] = value;
+				std::cout << "insert ok" << std::endl;
 			}
+			// bug a l insertion a la fin de la liste
+			// liee a un alloc_type que INPUT ITERATOR N A PAS DE BASE
 			template<class InputIterator>
 			void insert(iterator pos, InputIterator first, InputIterator last, typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = NULL)
 			{
-				size_type	def_size(0);
+				size_type	s = &*pos - &*begin(); // va calculer l index de pos
+				size_type	e = &*end() - &*pos; // va calculer la difference entre index de fin et pos
 				InputIterator	current(first);
-				size_type	s = &*pos - &*begin();
-				size_type	e = &*last - &*pos;
-				while(current++ != last)
+				size_type	def_size(0);
+				std::cout << "42" << std::endl;	
+				while(current != last)
+				{
+					current++;
 					def_size++;
-				def_size += _size;
-				if(def_size > _capacity)
-					reserve(def_size);
-				for(size_type i = 0; i < e; i++)
-					_alloc_type.construct(&_array[def_size - 1 - i], _array[_size - 1 -i]);
-				while(first != last)
-					*((begin() + s++)) = *(first++);
-				_size = def_size;
+				}
+				std::cout << "index pos " << s << std::endl;
+				std::cout << "eccart par rapport a end : " << e << std::endl;
+				for(size_type i = 0; i < _size; i++ )
+					std::cout << _array[i] << "|";
+				std::cout << std::endl;
+				std::cout << "BEFORE" << std::endl;
+				std::cout << "SIZE " << _size << std::endl;
+				InputIterator	f(first);
+				iterator	p = pos + 1;
+				for(size_type i = 0; i < def_size ; i++)
+				{
+					if((p - 1) == end())
+					{
+						std::cout << " INDEX " << _size + i << std::endl;
+						std::cout << "VAL " << *(f);
+						_alloc_type.construct(&_array[_size + i], *(f++));
+					}
+					else
+					{
+						std::cout << " INDEX " << _size + i << std::endl;
+						std::cout << " VAL " << (*p) << std::endl;
+						_alloc_type.construct(&_array[_size + i], *(p));
+						(*p) = (*f);
+						f++;
+						p++;
+					}
+				}
+				std::cout << std::endl;
+				for(size_type o = 0; o < _size + def_size; o++)
+					std::cout << _array[o] << "|";
+				std::cout << std::endl;
+				std::cout << "END INSERT(pos,first,last)" << std::endl;
 			};
 			iterator	erase(iterator	pos)
 			{return erase(pos, pos + 1);};
@@ -267,13 +302,15 @@ namespace ft
 				_array = x._array;
 				x._capacity = _c;
 				x._size = _s;
-				x._array = _s;
+				x._array = _a;
 			};
 			void	clear(){
 				while(_size > 0)
 					pop_back();
 			};
 			allocator_type	get_allocator()const {return _alloc_type;};
+
+
 	};
 
 	template<class T, class Alloc>
