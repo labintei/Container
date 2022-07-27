@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/27 18:08:21 by labintei          #+#    #+#             */
-/*   Updated: 2022/06/30 14:08:56 by labintei         ###   ########.fr       */
+/*   Updated: 2022/07/26 14:52:52 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ namespace ft
 		vector_iterator& operator=(vector_iterator const & s){_p = s._p; return *this;};
 		~vector_iterator(){};		
 		// conflit avec base a eclaircir
-		pointer base() const {return _p;};
+		//pointer base() const {return _p;};
 		pointer get_ptr() const {return _p;};	
 		operator vector_iterator<value_type const>() const{return vector_iterator<value_type const>(_p);};
 		

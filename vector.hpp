@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/30 16:41:19 by labintei          #+#    #+#             */
-/*   Updated: 2022/07/17 19:20:07 by labintei         ###   ########.fr       */
+/*   Updated: 2022/07/20 18:40:40 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,6 @@ namespace ft
 			size_type	_size;
 			size_type	_capacity;
 		public:
-			// Par default
 			vector(const allocator_type& a = allocator_type()): _alloc_type(a), _array(NULL), _size(0), _capacity(0){};
 			vector(size_type n, const value_type& _val = value_type(), const allocator_type &a = allocator_type()): _alloc_type(a), _array(NULL), _size(n), _capacity(n)
 			{
@@ -76,13 +75,13 @@ namespace ft
 					_alloc_type.deallocate(_array, _capacity);
 			};
 
-			vector& operator=(const vector &a) // je l ai simplifie
+			vector& operator=(const vector &a)
 			{
 				if(this == &a)
 					return *this;
-				clear();// enleve tout les elements
+				clear();
 				if(_array)
-					_alloc_type.deallocate(_array, _capacity);// dans tout les cas je deallou et alloue a la bonne taille
+					_alloc_type.deallocate(_array, _capacity);
 				_capacity = a._capacity;
 				_size = a._size;	
 				if(a._array)
@@ -98,7 +97,7 @@ namespace ft
 			{
 				if(n > _capacity)
 					reserve(n);
-				if(n > _size)// copie la fin la valeur val a la fin de l array
+				if(n > _size)
 				{
 					for(size_type i = _size; i < n; i++)
 						_alloc_type.construct(&_array[i], val);
@@ -116,8 +115,7 @@ namespace ft
 					return;
 				if(n > _capacity)
 				{
-					// met la capacite a la nouvelle taille , copie colle , tmp = _array doit garder l ancienne capacite pour dealocate
-					pointer_type	_tmparray = _alloc_type.allocate(n);
+					value_type*	_tmparray = _alloc_type.allocate(n);
 					for(size_type i = 0; i < _size; i++)
 					{
 						_alloc_type.construct(&_tmparray[i], _array[i]);
@@ -128,7 +126,6 @@ namespace ft
 					_capacity = n;
 					_array = _tmparray;
 				}
-				std::cout << "reserve ok" << std::endl;
 			};	
 			size_type 	capacity()const{return	_capacity;};
 			size_type 	size()const{	return	_size;};
@@ -139,14 +136,13 @@ namespace ft
 				size_type	i(0);
 				InputIterator	a(first);
 
-				while(a++ != last)// compte le nombre d itrations
+				while(a++ != last)
 					i++;
 				if(i > _capacity)
 					reserve(i);
-				// vide _array simplification fait ici
 				clear();
 				for(size_type u = 0; u < i; u++)
-					_alloc_type.construct(&_array[u], (*first++)); // POST INCREMENTE LE POINTEUR ET NON LA VALEUR
+					_alloc_type.construct(&_array[u], (*first++));
 				_size = i;
 			};
 			void	assign(size_type n, const value_type &u)
@@ -189,9 +185,9 @@ namespace ft
 				if(_capacity == _size)
 				{  
 					if(_capacity == 0)
-						reserve(1);// si n a pas de capacite aloute 1
+						reserve(1);
 					else
-						reserve(_capacity * 2); // augmente la capacitee par deux
+						reserve(_capacity * 2);
 				}
 				_alloc_type.construct(&_array[_size], x);
 				_size++;	
@@ -204,93 +200,68 @@ namespace ft
 					_size--;
 				}
 			};
-			iterator	insert(iterator pos, const value_type& value)
+			iterator	insert(iterator pos, const T& value)
 			{
-				size_type	a = &(*pos) - &(*begin());
+				size_type	a = &*pos - &*begin();
 				insert(pos, 1, value);
 				return(begin() + a);
 			};
-			void		insert(iterator pos, size_type n, const value_type& value)
+			void		insert(iterator pos, size_type n, const T& value)
 			{
-				size_type	s = &*pos - &*begin();// donne le start donc au n ieme element
+				size_type	s = &*pos - &*begin();
 				size_type	e = &*end() - &*pos;
 
 				if(_size + n > _capacity)
 					reserve(_size + n);
-				std::cout << "ok" << std::endl;
 				_size += n;
 				for(size_type i = 0; i < e; i++)
 					_alloc_type.construct(&_array[_size -1 -i], _array[_size -n -1 - i]);
-				std::cout << "why" << std::endl;
 				for(size_type i = 0; i < n; i++)
 					_array[s + i] = value;
-				std::cout << "insert ok" << std::endl;
-			}
-			// bug a l insertion a la fin de la liste
-			// liee a un alloc_type que INPUT ITERATOR N A PAS DE BASE
+			};
 			template<class InputIterator>
 			void insert(iterator pos, InputIterator first, InputIterator last, typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = NULL)
 			{
 				size_type	s = &*pos - &*begin(); // va calculer l index de pos
 				size_type	e = &*end() - &*pos; // va calculer la difference entre index de fin et pos
-				InputIterator	current(first);
+				InputIterator	current = first;
 				size_type	def_size(0);
-				std::cout << "42" << std::endl;	
-				while(current != last)
+
+				while(current++ != last)
 				{
-					current++;
 					def_size++;
 				}
-				std::cout << "index pos " << s << std::endl;
-				std::cout << "eccart par rapport a end : " << e << std::endl;
-				for(size_type i = 0; i < _size; i++ )
-					std::cout << _array[i] << "|";
-				std::cout << std::endl;
-				std::cout << "BEFORE" << std::endl;
-				std::cout << "SIZE " << _size << std::endl;
-				InputIterator	f(first);
-				iterator	p = pos + 1;
-				for(size_type i = 0; i < def_size ; i++)
+				if(_capacity < def_size + _size)
+					reserve(def_size + _size);
+				InputIterator	f = first;
+				
+				for(size_type i = 0; i < e ; i++)
 				{
-					if((p - 1) == end())
-					{
-						std::cout << " INDEX " << _size + i << std::endl;
-						std::cout << "VAL " << *(f);
-						_alloc_type.construct(&_array[_size + i], *(f++));
-					}
-					else
-					{
-						std::cout << " INDEX " << _size + i << std::endl;
-						std::cout << " VAL " << (*p) << std::endl;
-						_alloc_type.construct(&_array[_size + i], *(p));
-						(*p) = (*f);
-						f++;
-						p++;
-					}
+					_alloc_type.construct(&_array[_size -1 + def_size - i], _array[_size -1 - i]);
 				}
-				std::cout << std::endl;
-				for(size_type o = 0; o < _size + def_size; o++)
-					std::cout << _array[o] << "|";
-				std::cout << std::endl;
-				std::cout << "END INSERT(pos,first,last)" << std::endl;
+				while(first != last)
+					*((begin() + s++)) = *(first++);
+				_size += def_size;
 			};
-			iterator	erase(iterator	pos)
-			{return erase(pos, pos + 1);};
+			iterator	erase(iterator	pos){return erase(pos, pos + 1);};
 			iterator	erase(iterator first, iterator last) // est un test
 			{
-				iterator	current(begin());
-				iterator	stock; 
-				while(current != first && current != end())
-					current++;
-				while(current != last && current != end())
+				iterator	current(first);
+				
+				size_type i = &*last - &*first;
+				while(last != end())
 				{
-					stock = current + 1;
-					_alloc_type.destroy(&(*current));
-					current = stock;
+					*first = *last;
+					first++;
+					last++;
 				}
-				return current;
-					
-			}
+				while(i > 0)
+				{
+					pop_back();
+					i--;
+				}
+				return current;	
+			};
 			void	swap(vector &x)
 			{
 				size_type	_c(_capacity);
@@ -313,25 +284,25 @@ namespace ft
 
 	};
 
-	template<class T, class Alloc>
+	template<typename T, class Alloc>
 	bool operator==(const vector<T, Alloc> &x, const vector<T, Alloc> &y)
 	{
 		if(x.size() != y.size())
 			return false;
 		return(equal(x.begin(), x.end(), y.begin())); // ne prends que troiis arguments comme meme taille ou segfault
-	}
-	template<class T, class Alloc>
-	bool operator!=(const vector<T,Alloc> &x, const vector<T,Alloc> &y){return !(x == y);};
-	template<class T, class Alloc>
+	};
+	template<typename T, class Alloc>
+	bool operator!=(const vector<T,Alloc> &x, const vector<T,Alloc> &y){return (!(x == y));};
+	template<typename T, class Alloc>
 	bool operator<(const vector<T, Alloc> &x, const vector<T, Alloc> &y)
 	{	return(lexicographical_compare(x.begin(), x.end(), y.begin(), y.end()));};
-	template<class T, class Alloc>
-	bool operator>(const vector<T, Alloc> &x, const vector<T,Alloc> &y){return !(x < y && x == y);};
-	template<class T, class Alloc>
+	template<typename T, class Alloc>
+	bool operator>(const vector<T, Alloc> &x, const vector<T,Alloc> &y){return !(x < y || x == y);};
+	template<typename T, class Alloc>
 	bool operator<=(const vector<T, Alloc> &x, const vector<T, Alloc> &y){return (x < y || x == y);};
-	template<class T, class Alloc>
+	template<typename T, class Alloc>
 	bool operator>=(const vector<T, Alloc> &x, const vector<T,Alloc> &y){return (x > y || x == y);};
-	template<class T, class Alloc>
+	template<typename T, class Alloc>
 	void swap(const vector<T, Alloc> &x, const vector<T, Alloc> &y)
 	{
 		x.swap(y);
