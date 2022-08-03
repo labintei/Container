@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/27 16:55:25 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/03 20:02:56 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/03 22:13:52 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -348,6 +348,8 @@ namespace ft
 	
 
 		// CALCUL LE NOMBRE MAXIMAL DE RANG
+
+
 		size_type	max_range(node_pointer	p, size_type i)
 		{
 			size_type	sizeleft = i;
@@ -378,6 +380,96 @@ namespace ft
 			
 		}
 
+		// pourra faire la meme chose avec Min
+		// max_range_pointer
+		// au debut 
+//		max_range(root, 0, range_souhaiter)
+		node_pointer	max_range_pointer(node_pointer r, size_type range, size_type actualrange)
+		{
+			node_pointer	left;
+			node_pointer	right; // aller de preference vers le right
+
+			if(range != actualrange)
+			{
+				// ON est pas au bon rang // Dans tous les cas on avance de 1
+				if(r->left)
+					left = max_range_pointer(r->left, range + 1, actualrange);
+				if(r->right)
+					right = max_range_pointer(r->right, range + 1, actualrange);
+
+			}
+			else if(actualrange == range)
+				return	r;
+			if(right)// prioritee a droite
+				return right;
+			if(left)// apres gauche
+				return left;
+		}
+
+		node_pointer	min_range_pointer(node_pointer r, size_type range, size_type actualrange)
+		{
+			node_pointer	left;
+			node_pointer	right;
+
+			if(range != actualrange)
+			{
+				if(r->right)
+					right = min_range_pointer(r->right, range + 1, actualrange);
+				if(r->left)
+					left = min_range_pointer(r->left, range + 1, actualrange);
+			}
+			else if(actualrange == range)
+				return r;
+			if(left)// priorite a gauche
+				return left;
+			if(right)
+				return right;
+		}
+		
+
+		/* PARTIR AUSSI DU PRINCIPE QUE QUAND JE REMONTE JUSQU A ROOT JE VAIS SUR LA PARTIE DROITE DE L ARBRE ET JE VAIS ALLER A DROITE puis 
+		-> <-
+		*/
+		node_pointer	range_implementation(node_pointer actual, size_type range, size_type actualrange)
+		{
+			if(actual->parent && actual->parent->left == actual && actual->parent->right)// sera techniquement sur le meme rang
+				return	actual->parent->right;// EST L ELEMENT DE GAUCHE ET DONC VA SUR L ELEMENT DU MEME RANG DE DROITE SI IL EXISTE
+			if(actual->parent && actual->parent->right == actual)
+			{
+				// EST DEJA SUR L ELEMENT DE DROITE DOIT REMONTER ET CHECHER UN NODE AU MEME RANG
+				if(range == actual range)
+				{
+
+				}
+			}
+			else
+			{
+				node_pointeur	tmp;
+				size_type
+				if(p->actual->parent)
+				node_pointer	p = actual->parent;
+				 ,range - 2)
+				
+			}
+		}
+
+		// faire quelque chose de legerement diffrent pour inclure le rang 1
+
+		void		print_n(node_pointer p)// PROBLEME NE PEUT PAS METTRE DE NULL
+		{
+			if(!p)
+			{
+				std::cout << "\tNULL ";
+				return;
+			}	
+			else if(p == root)
+				std::cout << "\tROOT = ";
+			else if(p->parent->left == p)
+				std::cout << "\tLEFT = ";
+			else if(p->parent->right == p)
+				std::cout << "\tRIGHT = ";
+			std::cout << p->val;
+		}
 
 		void		print_node(node_pointer	p)
 		{
@@ -388,7 +480,7 @@ namespace ft
 				else
 					std::cout << "\tEmpty\t";
 			}
-			if(p != _root)// AURA FORCEMENT UN PARENT
+			else if(p != _root)// AURA FORCEMENT UN PARENT
 			{
 				if(p->_parent && p->parent->left == p)
 				{
@@ -420,17 +512,6 @@ namespace ft
 
 		}
 
-		bool		is_max_range(int range)
-		{
-			
-
-		}
-
-		/*
-
-			
-		*/
-
 
 
 
@@ -445,46 +526,20 @@ namespace ft
 
 		void		print_range(size_type range)// PETIT PROBLEME VA REVENIR AU DEBUT A CHAQUE FOIS // MAIS EN MEME TEMPS C EST CE QU ON FAIT
 		{
-			if(range == 0)// ROOT
+			if(range == 0 || range == 1)
 			{
-				if(_root)
-					std::cout << "/tROOT = " << _root->val << std::endl;
-				else
-					std::cout << "/tEMPTY" << std::endl;
+				if(range == 0)
+					return print_node(_root);
+				if(range == 1 && _root->left)
+					return print(_root->left);
+				else if(_root->right)
+					return print(root->right);
 			}
 			else
 			{
-				size_type	t = 0;
-				iterator	i(_root);
-				for(size_type t = 0 ; t != range; t++)// VA A L ELEMENT LE PLUS A GAUCHE
-				{
-					if(i && (i->_current->left))
-						i = iterator(i->current->left);
-					else if(i && (i->_current->right))
-						i = iterator(i->_current->right);
-				}
-				// ON PRINT UN NODE
-				print_node(i->_current);
-				// on est sur le range
-				size_type	l = range;
-				for(size_type f = 0; ; f++)
-				{
-					print_node(i->_current);
-					if(i && i->_current->parent && i->_current->parent->parent)
-					{
-						range-= 2;
-						i = iterator(i->_current->parent->parent);
-					}
-					if(i->_currrent->right)
-					{
-						range++;
-					}
-					
-				}
-				for(i && )
-				
-				
-				
+				// va mettre l element le plus a gauche // pourrait marche pour range 1
+				node_pointer	i = min_range_pointer(root, range, 0);
+
 			}
 		}
 
