@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/27 16:55:25 by labintei          #+#    #+#             */
-/*   Updated: 2022/07/27 20:21:57 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/03 20:02:56 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,6 @@
 
 namespace ft
 {
-
-
-//	toutes ces valeur doivent etre visible et accessible par les precedent
 	template<class T>
 	struct Node
 	{
@@ -49,15 +46,7 @@ namespace ft
 		Node*		right;
 
 		Node(value_type &s): val(s){};
-		// struct on pas besoin de ~Node() ??
 	};
-
-//	cplusplus bidirectional_iterator_tag
-
-//	Je ne sais pas si il y a moyen de mettre les const emsemble
-
-//	rchallie prend en compte la class Compare qui est pas la meme sous map ou set
-
 
 	template<class N>
 	class three_iterator
@@ -72,23 +61,16 @@ namespace ft
 		typedef typename std::ptrdiff_t			difference_type;
 		typedef std::bidirectional_iterator_tag		iterator_category;
 
-		// en protected plus diificile d acceder a ce qu il y a dedans
+		protected:
 
 		node_p		_current;
-		// root ne sert a rien
-		node_p		_root;
-		// NIL correspond par default a pointeur sur un Node NUll
-		node_p		_NIL;
-		
-		// par default fera n importe que des NULL
+
+		public:
+	
+		// modifier	
 		three_iterator():_current(), _root(), _NIL();
-		// copy(0)
 		three_iterator(const three_iterator &s): _current(s._current), _root(s._root), _NIL(s._NIL){};
-		// copy(1)
-		three_iterator(const node_p &c, const node_p &r, const node_p &N): _current(c), _root(r), _NIL(N){};
-		// si ne marche pas
-		// three_iterator(node_p c, node_p r, node_p N)
-		// je ne sais pas trop pour ca
+		three_iterator(const node_p &c/*, const node_p &r, const node_p &N*/): _current(c)/*, _root(r), _NIL(N)*/{};
 		~three_iterator(){};
 
 
@@ -100,9 +82,6 @@ namespace ft
 			return *this;
 		};
 
-		
-
-		// 
 		friend bool operator==(const three_iterator &s, const three_iterator &r){return (s._current == r._current);}
 		friend bool operator!=(const three_iterator &s, const three_iterator &r){return (s._current != r._current);}
 
@@ -112,7 +91,7 @@ namespace ft
 			while(node->right)
 				node = node->_right;
 			return node;
-		}
+		}`
 		node_p	_min(node_p c)
 		{
 			while(node->left)
@@ -121,40 +100,55 @@ namespace ft
 		}
 
 		reference		operator*(){return _current->val;}
-		// renvoit une reference sous const ???
 		const_reference		operator*()const{return _current->val;}	
 		const_pointer		operator->()const{return &(operator*());}
 		pointer			operator->(){return &(operator*());}
 
-		// normalement toutes les decrementation ok
-		three_iterator operator++()
-		{
-			if(_current->right)
-				_current = _current->right;	
-		};
-		three_iterator &operator++(int){three_iterator tmp = *this; _current++; return tmp};
-		three_iterator operator--(){current--; return *this;};
-		three_iterator &operator--(int){three_iterator tmp = *this; _current--; return tmp;};
-		
-		
-		// reprendre leur logique ???
+		three_iterator operator++(){increase();return *this};
+		three_iterator &operator++(int){three_iterator tmp = *this; ++_current; return tmp};
+		three_iterator operator--(){decrease(); return *this;};
+		three_iterator &operator--(int){three_iterator tmp = *this; --_current; return tmp;};
 
+
+
+		/*
+		// compliquer				
+		*/
 		void increase()
 		{
 			if(_current->right)
 			{
-				_current = _current->right;// on est d accord
-				// ??
-				while(_node->left)
-					_nide = node->left;// ??
+				_current = min(_current->right);
 			}
 			else
 			{
-
+				node_pointer	tmp = _current;
+				_current = _current->parent;
+				while(_current->left != tmp)
+				{
+					tmp = _current;
+					_current = _current->parent;
+				}
 			}
 		}
+		void decrease()
+		{
+			if(_current->left)
+			{
+				_current = max(_current->left);
+			}
+			else
+			{
+				node_pointer	tmp = _current;
+				_current = _current->parent;
+				while(_current->right != tmp)
+				{
+					temp = _current;
+					_current = _current->parent;
+				}
+			}
 
-	};
+		};
 
 
 
@@ -172,10 +166,7 @@ namespace ft
 		typedef node*					pointer_node;
 		typedef	size_t					size_type;
 
-		//  a rechecker
-
 		typedef	ft::three_iterator<value_type>		iterator;
-		// peut etre a changer vu le build
 		typedef const ft::three_iterator<value_type>		const_iterator;
 		typedef typename reverse_iterator<iterator>		reverse_iterator;
 		typedef typename reverse_iterator<const_iterator>	const_reverse_iterator;
@@ -190,10 +181,387 @@ namespace ft
 
 		public:
 
+		bool		empty(){return size == 0;}
+
+
+		iterator	min()
+		{
+			iterator	i(root);
+			while(i->left)};
+				i = i->left;
+			return i;
+		}
+		iterator	max()
+		{
+			iterator	i(root)
+			while(i->right)
+				i = i->right;
+			return i;
+		}
+		iterator	find(const value &val)
+		{
+			iterator i(root);
+			
+			while(i)
+			{
+				if(val < i->val || val > i->val)
+				{
+					if(val < i->val && i->left)
+						i = i->left;
+					else if(val > i->val && i->right)
+						i = i->right;
+					else
+						return iterator();// renverra un NULL par default
+				}
+				else if(i->val == val)
+					return i;
+			}
+		}
+		
+
+		// PEUT PEUT ETRE SIMPLIFIER CA AVEC DES ++ ET --
+		// BREF FAIRE UNE DEUXIEME VERSION
+
+
+
+		void	insert(node_pointer parent, node_pointer neww)// mieux
+		{
+			// Dans tout les cas
+			neww->parent = parent;
+			if(neww->val == parent->val)
+				return ;// je sais pas quoi faire dans ce cas
+			node_pointer	tmp(NULL);
+			
+			if(neww->val > parent->val)
+			{
+				tmp = parent->right;
+				parent->right = neww;
+			}
+			else
+			{
+				tmp = parent->left;
+				parent->left = neww;
+			}
+			if(tmp)
+			{
+					if(neww->val > tmp->val)
+						neww->left = tmp;
+					else if(neww->val < tmp->val)
+						neww->right = tmp;
+					tmp->parent = neww;// dans tout les cas le parent devient NEWW
+			}
+			++_size;// important
+			// trouver un moyen de simplifier ca
+		}
+		// est ce que je fait une right insertion et une left insertion
+		// faire un cas ou le prochain est NULL OU tout le temps garder un previous ??
+		void	insert_good_place(node_pointer neww)
+		{
+			iterator	i(root);
+			node_pointer	i = _alloc_type.allocate(1);
+			_alloc_type.construct(&i, node_type(val));
+			while(i)
+			{
+				if(neww->val > i->_current->val)
+				{
+					if(i->_current->right && neww->val > i->_current->right->val)// je crois qu il y a deux cas
+						i = iterator(i->current->right);// SE DEPLACE QUAND IL DOIT SE DEPLACER
+					else
+						return	insert(neww);
+				}
+				if(neww->val < i->_current->val)
+				{
+					if(i->_current->left && neww->val < i->current->left->val)
+						i = iterator(i->current->left);
+					else
+						return	insert(neww);
+				}
+				if(neww->val == i->current->val)
+				{
+					std::cout << "Je ne sais pas quoi faire " << std::endl;
+					return;
+				}
+			}
+			
+
+		}	
+		//	faire a partir d un pointeur
+/*		void	insert_good_place(node_pointer neww)
+		{
+			iterator	i(root);
+			while(i)
+			{
+				if(i->_current->val > neww->val)
+				{
+					if(i->_current->right)
+						i = iterator(i->_current->right);
+					else// c est la que ce fait l insertion
+					{
+						node_pointeur tmp = i->_current->right;// stock le pointeur right
+						i->current->right = neww;
+						tmp->parent
+					}
+					
+						
+				{
+				else if(i->_current->val < neww->val)
+				{
+					if(i->_current->left)
+						i = iterator(i->current->left);
+				}
+				else
+				{
+					std::cout << "Je ne sais pas ce que l on fait quand cest ==" << std::endl;
+					return ;
+				}
+			}
+			return(i);
+		}
+*/
+//		Pas obligatoire c est juste pour voir ce que je fait
+		// ou iterator
+
+		/*
+				
+					ROOT
+			LEFT				RIGHT
+		LEFT		RIGHT		LEFT		RIGHT
+
+		PLUS SIMPLE
+		//
+
+		TOUJOURS LEFT_PRINT AVANT DE RIGHT PRINT
+		REMONTER D UN RANG
+
+		SI RIGHT && (all->parent are RIGHT) ->donc est max_range(n)
+		i++;
+		ALLER AU LEFT && all->parent are LEFT du rang souhaiter ->min_range(n)
+
+		//n REFAIRE LA MEME CHOSE
+
+		// FAIRE UNE FONCTION QUI CALCULE LE MAX RANGE		
+
+		*/
+
+
+		// FONCTION ET VALEUR A UTILISER
+	
+
+		// CALCUL LE NOMBRE MAXIMAL DE RANG
+		size_type	max_range(node_pointer	p, size_type i)
+		{
+			size_type	sizeleft = i;
+			size_type	sizeright = i;
+
+			if(p)
+			{
+				if(p->right || j->left)
+				{
+					if(j->right)
+					{
+						sizeright++;
+						sizeright = max_range(j->right, sizeright);
+					}
+					if(->left)
+					{
+						sizeleft++;
+						sizeleft = max_range(j->left, sizeleft);
+					}
+					if(sizeleft > sizeright)
+						i = sizeleft;
+					else
+						i = sizeright;
+				}
+				else// CORESPOND A DES NILL
+					return i;
+			}
+			
+		}
+
+
+		void		print_node(node_pointer	p)
+		{
+			if(p == _root)
+			{
+				if(_root)
+					std::cout << "\tROOT = " << p->val << "\t";
+				else
+					std::cout << "\tEmpty\t";
+			}
+			if(p != _root)// AURA FORCEMENT UN PARENT
+			{
+				if(p->_parent && p->parent->left == p)
+				{
+					std::cout << "\tLEFT = " << p->val << "\t";
+					if(p->parent->right)
+						std::cout << "\tRIGHT = " << p->parent->right->_val << "\t"
+					else// element RIGHT NULL
+						std::cout << "\tRIGHT = NULL" << "\t"; 
+				}
+				if(p->parent && p->parent->right == p)
+				{
+					// par default LEFT SERA TOUJOURS NULL
+					std:cout << "\tLEFT = NULL" << "\t";
+					std::cout << "\tRIGHT = " << p->val << "\t"; 
+				}
+
+			}
+		}
+
+
+		node_pointer	pointer_max_range(int range)
+		{
+			iterator	i(root);
+
+			for(size_type)
+			{
+
+			}
+
+		}
+
+		bool		is_max_range(int range)
+		{
+			
+
+		}
+
+		/*
+
+			
+		*/
 
 
 
 
+
+
+/*
+0					R
+1			B			C
+2		C		D	C		D
+
+*/
+
+		void		print_range(size_type range)// PETIT PROBLEME VA REVENIR AU DEBUT A CHAQUE FOIS // MAIS EN MEME TEMPS C EST CE QU ON FAIT
+		{
+			if(range == 0)// ROOT
+			{
+				if(_root)
+					std::cout << "/tROOT = " << _root->val << std::endl;
+				else
+					std::cout << "/tEMPTY" << std::endl;
+			}
+			else
+			{
+				size_type	t = 0;
+				iterator	i(_root);
+				for(size_type t = 0 ; t != range; t++)// VA A L ELEMENT LE PLUS A GAUCHE
+				{
+					if(i && (i->_current->left))
+						i = iterator(i->current->left);
+					else if(i && (i->_current->right))
+						i = iterator(i->_current->right);
+				}
+				// ON PRINT UN NODE
+				print_node(i->_current);
+				// on est sur le range
+				size_type	l = range;
+				for(size_type f = 0; ; f++)
+				{
+					print_node(i->_current);
+					if(i && i->_current->parent && i->_current->parent->parent)
+					{
+						range-= 2;
+						i = iterator(i->_current->parent->parent);
+					}
+					if(i->_currrent->right)
+					{
+						range++;
+					}
+					
+				}
+				for(i && )
+				
+				
+				
+			}
+		}
+
+		void		print()
+		{
+			std::cout << ""
+			size_type		i = 0;
+
+			i = max_range(root, i);// va compter le nombre maximale de rang
+			for(size_type j = 0; j <= i; j++)// SAUT DE LIGNE
+			{
+				std::cout << "\t\tRANGE = " << j << std::endl;
+				std::cout << "_____________________________________________________________________________________________________________"<< std::endl;// UNE SEPARATION
+				print_range(j);
+				std::cout << std::endl;
+			}
+
+		}
+
+/*
+		void		print_node(node_pointer n, size_type range, size_type wish_print)
+		{
+			if(range == 0 && wish_print == 0)
+			{
+				std::cout "ROOT " << n->val;
+				range++;
+				wish_print++;
+				std::cout << std::endl;
+				if(n->left)
+					print_node(n->left);
+				else
+					print_node(n->right);//cas ou la patie de gauche est vide
+				return;
+			}// CAS DE ROOT
+			else
+			{
+				// PERMET DE TYPER LA VALEUR EN RIGHT OU EN LEFT
+				if(i != 0 && n->parent && n == n->parent->right && range == wish_print)
+					std::cout << "RIGHT " << n->val << " ";
+				if(i != 0 && n->parent && n == n->parent->left && range == wish_print)
+					std::cout << "LEFT " << n->val << " ";
+				// GO LEFT
+				// IMPRIME LEFT
+				// REMONTE
+				// GO RIGHT
+				// IMPRIME RIGHT
+				// ON REMONTE TOUJOURS JUSQU A 0 // PRINCIPE DE BASE
+				// 
+				while(range != )
+				print_node
+
+		
+				// IL FAUT UNE FIN
+				
+			}
+				
+
+		}*/
+/*
+		node_pointeur		max_range(size_type range)
+		{
+			node_pointer	n = root;
+			node_pointer	tmp;
+
+			for(size_type t = 0; t != range)
+			{}
+		}*/
+		void		print()
+		{
+			std::cout << "PRINT ARBRE DE RECHERCHE" << std::endl;
+			size_type	i = 0;
+			size_type	j = 0;
+			// indiquera le nombre derang que je peut remonter pour print // 
+			if(!_root)
+				return;
+			print_node(_root, i, j);
+		}
 
 	};
 
