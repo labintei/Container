@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/27 16:55:25 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/05 17:18:54 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/05 20:50:49 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,14 +147,12 @@ namespace ft
 
 	};
 
-//	template <class T, class Compare, class Alloc = std::allocator<Node<T> > >
-	template <class T, class Compare, class Key_Compare, class Alloc = std::allocator<Node<T> > >// essayons ca
+	template <class T, class Compare, class Alloc = std::allocator<Node<T> > >
 	class three
 	{
 		public:
 
 		typedef Compare						comp;
-		typedef	Key_Compare					key_comp;
 		typedef T						value_type;
 		typedef T*						pointer;
 		typedef T&						reference;
@@ -173,7 +171,6 @@ namespace ft
 
 		node_pointer	_root;
 		comp		_comp;
-		key_comp	_key_comp;
 		allocator_type	_alloc;
 		size_type	_size;
 
@@ -184,7 +181,7 @@ namespace ft
 		size_type	size(){return _size;}
 		size_type	max_size()const{return _alloc.max_size();}
 		
-		reference	operator[]()
+		//reference	operator[]()
 
 
 		iterator		begin(){return min();}

@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 18:44:36 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/05 17:05:27 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/05 20:55:38 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ namespace ft
 		// quand je creer le tree je vait modifier ca
 		//typedef typename ft::three<value_type, value_compare>					three;
 		// ok a deux compare
-		typedef typename ft::three<const value_type,const value_compare,const key_compare>	three;// par default fournit alloc
+		typedef typename ft::three<const value_type,const value_compare>			three;// par default fournit alloc
 		typedef typename three::iterator							iterator;
 		typedef typename three::const_iterator							const_iterator;
 		typedef typename three::reverse_iterator						reverse_iterator;
@@ -105,6 +105,15 @@ namespace ft
 					return (tree.find(search)->second);
 				}
 			}//DONE
+
+
+			iterator	upper_bound(const key_type &k)
+			{// envoit un iterateur pointant sur le premier element dans le container ou la clee est considere comme allant apres k
+				for(iterator tmp = begin(); tmp != end(); tmp++)
+					if((key_comp()(k, tmp->first))// k est devenu < tmp->first ??
+						return tmp;
+				return end();
+			}
 
 			pair<iterator,bool>	insert(const value_type& val){}
 			{
