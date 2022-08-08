@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/27 16:55:25 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/05 20:50:49 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/08 18:37:06 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@
 
 
 // trouver un autre moyen de l implementer
-// BLACK 0
-// RED 1
+#define BLACK 0
+#define RED 1
 
 namespace ft
 {
@@ -255,6 +255,168 @@ namespace ft
 			return i;// SI NE TROUVE PAS RENVOIT NULL
 		}
 
+
+
+
+		// programmiz red black tree
+
+		/*
+
+			1) every_nodes is color, /rouge ou noi
+
+			2) root is black
+
+			3) Chaque NIL is black
+
+			4) Pas de rouges a la suite
+
+			5) Pour chaque chemin a le meme nombre de noeud noir
+
+			Node: color, key, left right parent
+
+			Limitation : aucun chemin a partir de la est plus grand de deux fois que aucun autre chemin
+				lenght < 2 * other lenght
+		*/
+
+		// Operation Left_rotate
+		/*
+			Correspond a une rotation B parent left de A
+			Prerequis B est le right de A
+
+			R		R
+			|		|
+			A		B
+		       / \	->     / \
+		      E   B	      A   D
+			 / \	     / \
+			C   D	    E   C
+		*/
+
+		void		Left_rotate(node_pointer A, node_pointer B)
+		{
+			if(B->left)//2)
+			{
+				B->left->parent = A;
+				A->right = B->left;// EST DEVENU PARENT
+			}
+			if(!(A->parent))//3)
+				_root = B;
+			else if(A == A->parent->right)//4)
+				A->parent->right = B;
+			else//5)
+				A->parent->left = B;
+			B->left = A;//6)
+			A->parent = B;
+		}
+
+		// Operation Right_rotate
+		/*
+			Correspond a une rotation B parent right de A
+			Prerequis B est le left de A
+			R			R
+			|			|
+			A			B
+		       / \		       / \
+		      B	  E		      C   A
+		     / \			 / \
+		    C   D			D   E
+		*/
+
+		void		Right_rotate(node_pointer A, node_pointer B)
+		{
+			if(B->right)//1)
+			{
+				B->right->parent = A;
+				A->left = B->right;
+			}
+			if(!A->parent)//2)
+				_root = B;
+			else if(A->parent->right == A)//3)
+				A->parent->right = B;
+			else//4)
+				A->parent->left = B;
+			B->right = A;//6)
+			A->parent = B;
+		}
+
+		// LEFT_RIGHT Rotation
+		/*
+			/\		/
+		       /	->     /
+				      /
+		*/
+		void		Left_Right_rotate(node_pointer A)
+		{
+			Left_rotate(A, A->right);
+		}
+
+		// RIGHT_LEFT Rotation
+		/*
+
+		*/
+		void		Right_Left_rotate(node_pointer A)
+		{
+			Right_rotate(A, A->left);
+		}
+
+		/*
+			Insert new element in Red Black Tree
+
+			1)Le node est inserer en tant que rouge
+			2) Si le noeud n est pas dans les propritees
+				1)Recolor
+				2)Rotation
+			
+		*/
+
+
+		void	insert_red_black_three(const value_type &val)
+		{
+			node_pointer	i = _alloc.allocate(1);
+			i->left = NULL;i->right = NULL;i->parent = NULL;i->color = RED;
+			_alloc.construct(&i, node_type(val));
+			if(!(_root))//
+			{
+				_root = i;
+				i->color = BLACK;
+				_size++;
+			}
+			else
+			{
+				iterator	i(_root);
+				iterator	s();
+				while(i)
+				{
+					if(val < i->_current->val)
+					{
+						if(i == min())//correspond a min
+						{
+							// insert a la fin
+						}
+						else if(val > i->left)//(val > (i--)->_current->val)
+						{
+							// insert entre i && i->left
+						}
+						i--;
+					}
+					if(val > i->current->val)
+					{
+						if(i == max()) // correspond au max
+						{
+							// insert a la fin
+						}
+						else if(val < i->right)//(val < (i--)->_current->val)
+						{
+							// insert entre i && i->right
+						}
+						i++
+					}
+
+				}
+
+				_size++;
+			}
+		}
 
 		void	insert(node_pointer parent, node_pointer neww)// mieux
 		{
