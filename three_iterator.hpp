@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/27 16:55:25 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/08 18:37:06 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/09 18:37:37 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 
 #include <cstddef>
 
-
+#include "print_tree_iterator.hpp"
 
 // trouver un autre moyen de l implementer
 #define BLACK 0
@@ -41,12 +41,32 @@ namespace ft
 		typedef T*	pointeur;
 		
 		value_type	val;
+		bool		NIL;
+		bool		color;
 		Node*		parent;
 		Node*		left;
 		Node*		right;
 
-		Node(value_type &s): val(s){};
+		Node():val(NULL) , NIL(true),color(BLACK),parent(NULL),left(NULL),right(NULL){};// creer un NILL evitera les segfaults 
+		Node(value_type &s): val(s) , NIL(false), color(RED), parent(Node()), left(Node()), right(Node()){};
+		
+		Node operator=(const Node &ref)
+		{
+			val = ref.val;
+			parent = ref.parent;
+			left = ref.left;
+			right = ref.right;
+		}
+		// S OCCUPER DES NILS
+		friend	bool	operator==(const Node& first, const Node &second)
+		{
+			if(first.NIL != second.NIL)
+				return false;
+		}
+		// Peut etre faire des operateur pour les node
 	};
+
+	
 
 	template<class N>
 	class three_iterator
@@ -65,14 +85,11 @@ namespace ft
 
 		node_p		_current;
 
-		public:
-	
-		// modifier	
-		three_iterator():_current(value_type()){};
+		public:	
+		three_iterator():_current(Node()){};
 		three_iterator(const three_iterator &s): _current(s._current){};
 		three_iterator(const node_p &c): _current(c){};
 		~three_iterator(){};
-
 
 		three_iterator operator=(const three_iterator &s)
 		{
@@ -86,42 +103,35 @@ namespace ft
 
 		node_p	_max(node_p n)
 		{
-			while(n->right)
+			while(n->right->NIL)
 				n = n->_right;
 			return n;
 		}
 		node_p	_min(node_p n)
 		{
-			while(n->left)
+			while(n->left->NIL)//doit corresondre a un NILL
 				n = n->left;
 			return n;
 		}
 
-		//reference		operator*(){return _current->val;}
 		reference		operator*()const{return _current->val;}	
 		pointer			operator->()const{return &(operator*());}
-		//pointer			operator->(){return &(operator*());}
 
 		three_iterator operator++(){increase();return *this;};
 		three_iterator &operator++(int){three_iterator tmp = *this; ++_current; return tmp;};
 		three_iterator operator--(){decrease(); return *this;};
 		three_iterator &operator--(int){three_iterator tmp = *this; --_current; return tmp;};
 
-
-
-		/*
-		// compliquer				
-		*/
 		void increase()
 		{
-			if(_current->right)
+			if(_current->right->NIL)
 				_current = min(_current->right);
 			else
 			{
 				node_p		tmp = _current;
 				
 				_current = _current->parent;
-				while(_current->left != tmp)
+				while(!_current->NIL && _current->left != tmp)
 				{
 					tmp = _current;
 					_current = _current->parent;
@@ -136,7 +146,7 @@ namespace ft
 			{
 				node_p	tmp = _current;
 				_current = _current->parent;
-				while(_current->right != tmp)
+				while(!_current->NIL && _current->right != tmp)
 				{
 					tmp = _current;
 					_current = _current->parent;
@@ -150,6 +160,7 @@ namespace ft
 	template <class T, class Compare, class Alloc = std::allocator<Node<T> > >
 	class three
 	{
+		// les iterateur peuvent renvoyer des NIL
 		public:
 
 		typedef Compare						comp;
@@ -160,7 +171,6 @@ namespace ft
 		typedef typename ft::Node<value_type>			node;
 		typedef node*						node_pointer;
 		typedef	size_t						size_type;
-
 		typedef	ft::three_iterator<value_type>			iterator;
 		typedef const ft::three_iterator<value_type>		const_iterator;
 		typedef typename ft::reverse_iterator<iterator>		reverse_iterator;
@@ -173,17 +183,64 @@ namespace ft
 		comp		_comp;
 		allocator_type	_alloc;
 		size_type	_size;
-
+	
 		public:
 
-//		FONCTION PRESENTE DANS MAP ET SET
+		three(const allocator alloc = allocator_type()):_root(), _comp(comp), _alloc(allocator_type), _size(0)
+		{
+			_root = _alloc.allocate(1);
+			_alloc.construct(&_root), Node();
+		}
+		three(const &three t):_root(), _comp(t.comp), _alloc(t._alloc), _size(t._size){*this = t;}
+
+		~three(){}
+
+		void	clear_branch(node_ptr	x)
+		{
+			if(x == NULL)
+				x = _root;
+			if(x->NIL == false)
+			{
+				clear_branch(x->left);// va ua bout de la branche
+				clear_branch(x->right);
+				_alloc.destroy(x);
+				_alloc.deallocate(x, 1);
+			}
+		}
+
+		void	clear()
+		{
+			
+			_root = Node();
+			_size = 0;
+		}
+		three	operator=(const &t)
+		{
+			clear();
+			insert(begin(), end());
+		}
+		
+		void	branch_copy(node_pointer src, node_pointer tocopy)// ON part du principe que les RED black tree sont toujours equilibree
+		{
+			// tu peut faire des insert a la suite parce qu il y aura a chaque fois une nouvelle allocation
+			if(t->parent == Node())// est au niveau de la racine
+			{
+
+			}
+			else
+			{
+				src = alloc.allocate(1);
+				if(to->copy->left != Node())
+					branch_copy(src->left, to->copy->left);
+				if(to_copy->right != Node())
+					branch_copy(src->right, to->copy->right);
+			}
+		}
+
 		bool		empty(){return _size == 0;}
 		size_type	size(){return _size;}
 		size_type	max_size()const{return _alloc.max_size();}
 		
-		//reference	operator[]()
-
-
 		iterator		begin(){return min();}
 		const_iterator		begin()const{return min();}
 
@@ -197,8 +254,21 @@ namespace ft
 		const_reverse_iterator	rend(){return const_reverse_iterator(begin());}
 
 		// faire clear ici
-		void			clear(){}
+		//void			clear(){}pas obligee d utiliser clear C++11
 
+		// meme entre map et set
+		ft::pair<iterator,bool>	insert(const value_type &val)
+		{
+
+		}
+		// meme entre map et set
+		template<class InputIterator>
+		void	insert(InputIterator first, InputIterator last)
+		{
+
+		}
+
+		
 		iterator	min()
 		{
 			iterator	i(_root);
@@ -219,6 +289,7 @@ namespace ft
 			return (find_iterator(val)->_current->val;);// JUSTE POUR CHANGER LE TYPAGE
 		}
 
+		// TOUT CA NE SEMBLE PAS MARCHER
 		iterator	find_iterator(const value_type &val)
 		{
 			iterator i(_root);
@@ -236,9 +307,9 @@ namespace ft
 				}
 				else if(i->val == val)
 					return i;
-			}// ne marche pas simplifier avec ++ et --
+			}
 		}
-
+		// SAME
 		iterator	find_iterator(const value_type &val)
 		{
 			iterator	i(_root);
@@ -292,8 +363,9 @@ namespace ft
 			C   D	    E   C
 		*/
 
-		void		Left_rotate(node_pointer A, node_pointer B)
+		void		Left_rotate(node_pointer A/*, node_pointer B*/)
 		{
+			node_pointer	B = A->right;
 			if(B->left)//2)
 			{
 				B->left->parent = A;
@@ -322,8 +394,9 @@ namespace ft
 		    C   D			D   E
 		*/
 
-		void		Right_rotate(node_pointer A, node_pointer B)
+		void		Right_rotate(node_pointer A/*, node_pointer B*/)
 		{
+			node_pointer	B = A->left;
 			if(B->right)//1)
 			{
 				B->right->parent = A;
@@ -370,52 +443,264 @@ namespace ft
 		*/
 
 
-		void	insert_red_black_three(const value_type &val)
+
+		node_pointer	insert(node_pointer root,node_pointer neww, char d)
+		{
+			node_pointer	tmp;
+
+			if(d == 'r')
+			{
+				neww->color = BLACK;
+				_root = neww;
+			}
+			else if(d == 'R' || d == 'L')
+			{
+				if(d == 'R')
+				{
+					tmp = root->right;
+					root->right = neww;
+					neww->right = tmp;
+				}
+				else
+				{
+					tmp = root->left;
+					root->left = neww;
+					neww->left = tmp;
+				}
+				neww->parent = root;
+			}
+			else if(d == 'e')
+			{
+				std::cout << "SAME" << std::endl;
+				return NULL;
+			}
+			_size++;
+			return neww;
+		}
+
+
+		node_p	new_node(const value_type &val)
 		{
 			node_pointer	i = _alloc.allocate(1);
-			i->left = NULL;i->right = NULL;i->parent = NULL;i->color = RED;
-			_alloc.construct(&i, node_type(val));
-			if(!(_root))//
+			i->left = NULL;i->right = NULL;i->parent = NULL;
+			_alloc.construct(&i,node_type(val));
+			return i;
+		}
+
+		node_p	find_insert(const value_type &val)
+		{
+
+			iterator	i(_root);
+			iterator	s();
+			while(i)
 			{
-				_root = i;
-				i->color = BLACK;
-				_size++;
+				s = i;
+				if(val < i->_current->val)
+				{
+					if(i == min() || val > (s--)->_current->val)
+						return(insert('L',i->_current, new_node(val)));
+					i--;
+				}
+				if(val > i->_current->val)
+				{
+					if(i == max() || val > (s++)->current->val)
+						return(insert('R',i->_current, new_node(val)));
+					i++;
+				}
+				if(val == i->_current->val)
+					return(insert('e',i->_current, node_type(NULL)));
+			}
+			return i;
+
+		}
+
+
+// FAIT UN DELETE AVEC DES CLEES ?
+// modifier ca
+
+// commence a y = z
+
+
+		void	 	find_node_del(const value_type &val)
+		{
+			iterator(root);// seulement si egal egal
+		}
+
+		void	delete_node(node_pointer d)
+		{
+			bool		color = d->color;
+		
+			if(d->left == Node())
+			{
+					node_pointer	e = d->left;
+					d->right = e;
+					// transplant
+					if(d->parent->left == d)
+						d->parent->left = e;
+					else
+						d->parent->right = e;
+					delete_p(node_pointer);
+			}
+			else if(d->right == Node())
+			{
+				d->left 
+				if(d->parent->left == d)
+					d->parent->left = e;
+				else
+					d->parent->right = e;
 			}
 			else
 			{
-				iterator	i(_root);
-				iterator	s();
-				while(i)
+				node_pointer	e = min()
+				color = d->
+			}
+		}
+
+
+		void	insert_red_black_three(const value_type &val)
+		{
+			if(!(_root))//
+				insert('r', node_type(NULL), new_node(val))
+			else
+			{
+				node_pointer	i = find_insert(val);
+				if(i)
 				{
-					if(val < i->_current->val)
+					color_change(i);
+				}
+			}
+		}
+
+		//ALGOROTHM TO DELETE A NODE
+		// DONE MAIS ERREUR SUR LE PREMIER
+		void		delete_algo(node_pointer i)
+		{
+			// a lancer avant le delete va permettre de recolorer avant deletion
+			// sera quand meme plus simple avec un node_pointer
+
+			node_pointer	s;
+			while(i != root && i->color == BLACK)
+			{
+				if(i == i->parent->left)
+				{
+					s = i->parent->right;
+					if(s->color == RED)
 					{
-						if(i == min())//correspond a min
-						{
-							// insert a la fin
-						}
-						else if(val > i->left)//(val > (i--)->_current->val)
-						{
-							// insert entre i && i->left
-						}
-						i--;
+						i->parent->right->color = BLACK;
+						i->parent->color = RED;
+						Left_rotate(i->parent);
+						s = i->parent->right;// Assignation apres LEFT_ROTATE
 					}
-					if(val > i->current->val)
+					if(s->left->color == BLACK && s->right->color == BLACK)
 					{
-						if(i == max()) // correspond au max
+						s->color = RED;
+						i = i->parent;
+					}
+					else
+					{
+						if(s->right->color == BLACK)
 						{
-							// insert a la fin
+							s->left->color = BLACK;
+							s->color = RED;
+							Right_rotate(s);
+							s = i->parent->right;
 						}
-						else if(val < i->right)//(val < (i--)->_current->val)
+						s->color = i->parent->color;
+						i->parent->color = BLACK;
+						s->parent->color = BLACK;
+						Left_rotate(i->parent);
+						i = root;
+					} 
+				}
+				else
+				{
+					s = i->parent->left;
+					if(s->color == RED)
+					{
+						s->color = BLACK;
+						i->parent->color = RED;
+						Left_rotate(s);
+						s = i->parent->left;
+					}
+					else
+					{
+						if(s->left->color == BLACK)
 						{
-							// insert entre i && i->right
+							s->right->color = BLACK;
+							s->color = RED;
+							Left_rotate(s);
+							s = i->parent->left;
 						}
-						i++
+						s->color = x->parent->color;
+						i->parent->color = BLACK;
+						s->left->color = BLACK;
+						Right_rotate(x->parent);
+						x = _root;
 					}
 
 				}
-
-				_size++;
 			}
+			x->color = BLACK;	
+		}
+
+
+
+
+		// CORRESPOND A INSERT FIX DONE
+		void		color_change(node_pointer i)// PAR DU PRINCIPE QUE L ON NE DEPLACE PAS LES POINTER QUAND =
+		{
+			node_pointer	j;// PAS UTILE DE FAIRE UN POINTER DE PLUS
+			while(i->parent->color == RED)
+			{
+				if(i->parent == i->parent->parent->right)
+				{
+					u = i->parent->parent->left;
+					if(u->color == RED)
+					{
+						u->color = BLACK;// PAS PARTICULIEREMENT UTILE DANCE CE CAS
+						i->parent->color = BLACK;
+						i->parent->parent->color = RED;
+						i = i->parent->parent;
+					}
+					else
+					{
+						if(i == i->parent->left)
+						{
+							i = i->parent;
+							Right_rotate(i);
+						}
+						i->parent->color = BLACK;
+						i->parent->parent->color = RED;
+						Left_rotate(i->parent->parent);
+					}
+				}
+				else
+				{
+					if(i->parent->parent->right->color = RED)
+					{
+						i->parent->parent->right->color = BLACK;
+						i->parent->color = BLACK;
+						i->parent->parent->color = RED;
+						i = i->parent->parent;
+					}
+					else
+					{
+						if(i == i->parent->right)
+						{
+							i = i->parent;
+							Left_rotate(i);
+						}
+						i->parent->color = BLACK;
+						i->parent->parent->color = RED;
+						Right_rotate(i->parent->parent);
+						
+					}
+					
+				}
+				if(i == root)
+					break;
+			}
+			_root->color = BLACK;
 		}
 
 		void	insert(node_pointer parent, node_pointer neww)// mieux
@@ -479,164 +764,6 @@ namespace ft
 			
 
 		}	
-
-		size_type	max_range(node_pointer	p, size_type i)
-		{
-			size_type	sizeleft = i;
-			size_type	sizeright = i;
-
-			if(p)
-			{
-				if(p->right || p->left)
-				{
-					if(p->right)
-					{
-						sizeright++;
-						sizeright = max_range(p->right, sizeright);
-					}
-					if(p->left)
-					{
-						sizeleft++;
-						sizeleft = max_range(p->left, sizeleft);
-					}
-					if(sizeleft > sizeright)
-						i = sizeleft;
-					else
-						i = sizeright;
-				}
-			}
-			return i;
-		}
-// POUR AVOIR LE MAXIMUM SUR LE RANG N
-		node_pointer	max_range_pointer(node_pointer r, size_type range, size_type actualrange)
-		{
-			node_pointer	left;
-			node_pointer	right; // aller de preference vers le right
-
-			if(range != actualrange)
-			{
-				// ON est pas au bon rang // Dans tous les cas on avance de 1
-				if(r->left)
-					left = max_range_pointer(r->left, range, actualrange + 1);
-				if(r->right)
-					right = max_range_pointer(r->right, range , actualrange + 1);
-
-			}
-			else if(actualrange == range)
-				return	r;
-			if(right)// prioritee a droite
-				return right;
-			if(left)// apres gauche
-				return left;
-		}
-// POUR AVOIR LE MINIMUM SUR LE RANG N
-		node_pointer	min_range_pointer(node_pointer r, size_type range, size_type actualrange)
-		{
-			node_pointer	left;
-			node_pointer	right;
-
-			if(range != actualrange)
-			{
-				if(r->right)
-					right = min_range_pointer(r->right, range, actualrange + 1);
-				if(r->left)
-					left = min_range_pointer(r->left, range, actualrange + 1);
-			}
-			else if(actualrange == range)
-				return r;
-			if(left)// priorite a gauche
-				return left;
-			if(right)
-				return right;
-		}
-		
-// FONCTION IMPLEMENTATION
-		node_pointer	range_implementation(node_pointer actual, size_type range, size_type actualrange)
-		{
-			if(range == actualrange && actual->parent->left == actual && actual->parent->right)
-				return actual->parent->right;
-			node_pointer	l;
-			while(actual)
-			{
-				if(actual == _root)
-					return min_range_pointer(_root->right, range, 1);
-				l = actual;
-				actual = l->parent;// remonte;
-				actualrange--;
-				if(l == actual->left && actual->right)// si il y un element et que on est au bon range
-					return actual->right;
-				else if(l == actual->right && actual->parent)
-				{
-					l->actual;
-					actual = l->parent;
-					actualrange--;
-					node_pointer	s = min_range_pointer(actual->right, range, actualrange);
-					if(s)
-						return s;
-				}
-			}
-		}
-
-// FONCTION PRINT_NODE
-		void		print_n(node_pointer p)// PROBLEME NE PEUT PAS METTRE DE NULL
-		{
-			if(!p)
-			{
-				std::cout << "\tNULL ";
-				return;
-			}	
-			else if(p == _root)
-				std::cout << "\tROOT = ";
-			else if(p->parent->left == p)
-				std::cout << "\tLEFT = ";
-			else if(p->parent->right == p)
-				std::cout << "\tRIGHT = ";
-			std::cout << p->val;
-		}
-
-// FONCTION 2
-		void		print_range(size_type range)
-		{
-			if(range == 0 || range == 1)
-			{
-				if(range == 0)
-					return print_n(_root);
-				if(range == 1 && _root->left)
-					print_n(_root->left);
-				if(range == 1 && _root->right)
-					return print_node(_root->right);
-			}
-			else
-			{
-				node_pointer	i = min_range_pointer(_root,range, 0);// On va prendre l elemnet le plus a gauche
-				node_pointer	max = max_range_pointer(_root, range, 0);
-				node_pointer	tmp;
-				while(i != max && i)
-				{
-					print_node(i);
-					tmp = i;
-					i = range_implementation(tmp);
-				}
-				if(i == max)
-					print_node(i);
-			}
-		}
-// FONCTION 1
-		void		print()
-		{
-			std::cout << "ARBRE DE RECHERCHE" << std::endl;
-		//	size_type		i = 0;
-
-			size_type i = this->max_range(_root, 0);// va compter le nombre maximale de rang
-			for(size_type j = 0; j <= i ; j++)// SAUT DE LIGNE
-			{
-				std::cout << "\t\tRANGE = " << j << std::endl;
-				std::cout << "_____________________________________________________________________________________________________________"<< std::endl;// UNE SEPARATION
-				print_range(j);
-				std::cout << std::endl;
-			}
-
-		}
 
 	};
 
