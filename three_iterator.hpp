@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/27 16:55:25 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/09 18:37:37 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/10 16:14:43 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,21 +49,15 @@ namespace ft
 
 		Node():val(NULL) , NIL(true),color(BLACK),parent(NULL),left(NULL),right(NULL){};// creer un NILL evitera les segfaults 
 		Node(value_type &s): val(s) , NIL(false), color(RED), parent(Node()), left(Node()), right(Node()){};
-		
+		/*
 		Node operator=(const Node &ref)
 		{
 			val = ref.val;
 			parent = ref.parent;
 			left = ref.left;
 			right = ref.right;
-		}
-		// S OCCUPER DES NILS
-		friend	bool	operator==(const Node& first, const Node &second)
-		{
-			if(first.NIL != second.NIL)
-				return false;
-		}
-		// Peut etre faire des operateur pour les node
+		}*/
+		// pas obligatoire
 	};
 
 	
@@ -84,11 +78,12 @@ namespace ft
 		protected:
 
 		node_p		_current;
+		node_p		_NIL;
 
 		public:	
-		three_iterator():_current(Node()){};
-		three_iterator(const three_iterator &s): _current(s._current){};
-		three_iterator(const node_p &c): _current(c){};
+		three_iterator():_current(node_type()), _NIL(_current){};
+		three_iterator(const three_iterator &s): _current(s._current), _NIL(s._NIL){};
+		/*three_iterator(const node_p &c): _current(c){};*/// ??
 		~three_iterator(){};
 
 		three_iterator operator=(const three_iterator &s)
@@ -131,7 +126,7 @@ namespace ft
 				node_p		tmp = _current;
 				
 				_current = _current->parent;
-				while(!_current->NIL && _current->left != tmp)
+				while(_current != _NIL && _current->left != tmp)
 				{
 					tmp = _current;
 					_current = _current->parent;
@@ -146,7 +141,7 @@ namespace ft
 			{
 				node_p	tmp = _current;
 				_current = _current->parent;
-				while(!_current->NIL && _current->right != tmp)
+				while(_current != _NIL && _current->right != tmp)
 				{
 					tmp = _current;
 					_current = _current->parent;
@@ -157,12 +152,21 @@ namespace ft
 
 	};
 
+	template <typename I1, typename I2>
+	bool	operator==(const three_iterator<I1> &x, const three_iterator<I2> &y)
+	{return x._current == y._current;}
+	template <typename I1, typename I2>
+	bool	operator!=(const three_iterator<I1> &x, const three_iterator<I2> &y)
+	{return x._current != y._current;};
+
 	template <class T, class Compare, class Alloc = std::allocator<Node<T> > >
 	class three
 	{
 		// les iterateur peuvent renvoyer des NIL
 		public:
 
+		// ok techniquement il y a tout les iterateur
+		// Ok je n ai pas de key_compare
 		typedef Compare						comp;
 		typedef T						value_type;
 		typedef T*						pointer;
@@ -172,9 +176,9 @@ namespace ft
 		typedef node*						node_pointer;
 		typedef	size_t						size_type;
 		typedef	ft::three_iterator<value_type>			iterator;
-		typedef const ft::three_iterator<value_type>		const_iterator;
-		typedef typename ft::reverse_iterator<iterator>		reverse_iterator;
-		typedef typename ft::reverse_iterator<const_iterator>	const_reverse_iterator;
+		typedef ft::three_iterator<const value_type>		const_iterator;
+		typedef ft::reverse_iterator<iterator>			reverse_iterator;
+		typedef ft::reverse_iterator<const_iterator>		const_reverse_iterator;
 		typedef std::ptrdiff_t					difference_type;
 
 		protected:
@@ -183,21 +187,50 @@ namespace ft
 		comp		_comp;
 		allocator_type	_alloc;
 		size_type	_size;
-	
+
+		// mettre le NILL ici
+
+		node_pointer	lower_bound(const value_type& v)const
+		{
+			for(iterator p(min()); p != end(); p++)
+			{
+				if(!(_comp(*p, v)))
+					return p->_current;
+			}
+			return end()->_current;
+		}
+
+		node_pointer	upper_bound(const value_type& v)const
+		{
+			for(iterator p(min()); p != end(); p++)
+			{
+				if(comp(*p, v))
+					return p->_current;
+			}
+			return end()->_current;
+		}
+
+
+		node_pointer	_NIL;// Besoin ou non d allouer NILL ? non on aurait juste a le rajouter
+
+		// On va allouer NILL au cas ou NIL == _ROOT
+
 		public:
 
-		three(const allocator alloc = allocator_type()):_root(), _comp(comp), _alloc(allocator_type), _size(0)
+		three(const allocator_type &alloc = allocator_type()):_root(), _comp(comp()), _alloc(alloc), _size(0), _NIL(node())
 		{
+			_root = _NIL;
+/*
 			_root = _alloc.allocate(1);
-			_alloc.construct(&_root), Node();
+			_alloc.construct((_root), Node());*/
 		}
-		three(const &three t):_root(), _comp(t.comp), _alloc(t._alloc), _size(t._size){*this = t;}
+		three(const three &t):_root(), _comp(t.comp), _alloc(t._alloc), _size(t._size), _NIL(t._NIL){*this = t;}
 
 		~three(){}
 
-		void	clear_branch(node_ptr	x)
+		void	clear_branch(node_pointer	x)
 		{
-			if(x == NULL)
+			if(x == _NIL)
 				x = _root;
 			if(x->NIL == false)
 			{
@@ -211,19 +244,18 @@ namespace ft
 		void	clear()
 		{
 			
-			_root = Node();
+			//_root = Node();
 			_size = 0;
 		}
-		three	operator=(const &t)
+		three	operator=(const three &t)
 		{
 			clear();
-			insert(begin(), end());
+			insert(t.begin(), t.end());
 		}
-		
-		void	branch_copy(node_pointer src, node_pointer tocopy)// ON part du principe que les RED black tree sont toujours equilibree
+		/*
+		void	branch_copy(node_pointer src, node_pointer tocopy)
 		{
-			// tu peut faire des insert a la suite parce qu il y aura a chaque fois une nouvelle allocation
-			if(t->parent == Node())// est au niveau de la racine
+			if(t->parent == Node())
 			{
 
 			}
@@ -235,7 +267,7 @@ namespace ft
 				if(to_copy->right != Node())
 					branch_copy(src->right, to->copy->right);
 			}
-		}
+		}*/
 
 		bool		empty(){return _size == 0;}
 		size_type	size(){return _size;}
@@ -247,25 +279,26 @@ namespace ft
 		iterator		end(){return max();}
 		const_iterator		end()const{return max();}
 
-		reverse_iterator	rbegin(){return reverse_iterator(end())}
+		reverse_iterator	rbegin(){return reverse_iterator(end());}
 		const_reverse_iterator	rbegin()const{return const_reverse_iterator(end());}
 		
 		reverse_iterator	rend(){return reverse_iterator(begin());}
-		const_reverse_iterator	rend(){return const_reverse_iterator(begin());}
+		const_reverse_iterator	rend()const{return const_reverse_iterator(begin());}
 
-		// faire clear ici
-		//void			clear(){}pas obligee d utiliser clear C++11
-
-		// meme entre map et set
 		ft::pair<iterator,bool>	insert(const value_type &val)
 		{
-
+			size_type	n = size();
+			node_pointer	res = find_insert(val);
+			if(res == _NIL)
+				return ft::make_pair(value_type(), (n != size()));
+			return ft::make_pair(res->val, (n != size()));
 		}
-		// meme entre map et set
+
 		template<class InputIterator>
 		void	insert(InputIterator first, InputIterator last)
 		{
-
+			for(InputIterator a = first; a != last; a++)
+				insert(*a);
 		}
 
 		
@@ -286,11 +319,11 @@ namespace ft
 
 		value_type	find_val(const value_type &val)
 		{
-			return (find_iterator(val)->_current->val;);// JUSTE POUR CHANGER LE TYPAGE
+			return (find_iterator(val)->_current->val);// JUSTE POUR CHANGER LE TYPAGE
 		}
 
 		// TOUT CA NE SEMBLE PAS MARCHER
-		iterator	find_iterator(const value_type &val)
+		/*iterator	find_iterator(const value_type &val)
 		{
 			iterator i(_root);
 			
@@ -308,8 +341,9 @@ namespace ft
 				else if(i->val == val)
 					return i;
 			}
-		}
+		}*/
 		// SAME
+/*
 		iterator	find_iterator(const value_type &val)
 		{
 			iterator	i(_root);
@@ -324,8 +358,7 @@ namespace ft
 					i--;
 			}
 			return i;// SI NE TROUVE PAS RENVOIT NULL
-		}
-
+		}*/
 
 
 
@@ -472,27 +505,28 @@ namespace ft
 			else if(d == 'e')
 			{
 				std::cout << "SAME" << std::endl;
-				return NULL;
+				return root;
 			}
 			_size++;
 			return neww;
 		}
 
 
-		node_p	new_node(const value_type &val)
+		node_pointer		new_node(const value_type &val)
 		{
 			node_pointer	i = _alloc.allocate(1);
-			i->left = NULL;i->right = NULL;i->parent = NULL;
+			i->left = _NIL;i->right = _NIL;i->parent = _NIL;
 			_alloc.construct(&i,node_type(val));
 			return i;
 		}
 
-		node_p	find_insert(const value_type &val)
+		// find_insert une de mes fonctions principale
+		node_pointer		find_insert(const value_type &val)
 		{
 
 			iterator	i(_root);
-			iterator	s();
-			while(i)
+			iterator	s;
+			while(i != _NIL)
 			{
 				s = i;
 				if(val < i->_current->val)
@@ -508,12 +542,11 @@ namespace ft
 					i++;
 				}
 				if(val == i->_current->val)
-					return(insert('e',i->_current, node_type(NULL)));
+					return(insert('e',i->_current, _NIL));
 			}
 			return i;
 
 		}
-
 
 // FAIT UN DELETE AVEC DES CLEES ?
 // modifier ca
@@ -523,14 +556,18 @@ namespace ft
 
 		void	 	find_node_del(const value_type &val)
 		{
-			iterator(root);// seulement si egal egal
+			node_pointer	i = find_insert(val);
+			if(i)
+				std::cout << "DEL" << std::endl;
+			else
+				std::cout << "NOT DEL" << std::endl;
 		}
 
-		void	delete_node(node_pointer d)
+		void	delete_n(node_pointer d)// A refaire
 		{
-			bool		color = d->color;
+	//		bool		color = d->color;
 		
-			if(d->left == Node())
+			if(d->left == _NIL)
 			{
 					node_pointer	e = d->left;
 					d->right = e;
@@ -539,11 +576,11 @@ namespace ft
 						d->parent->left = e;
 					else
 						d->parent->right = e;
-					delete_p(node_pointer);
+					//delete_node(node_pointer); ??
 			}
-			else if(d->right == Node())
+			else if(d->right == _NIL)
 			{
-				d->left 
+				node_pointer e;// ??? 
 				if(d->parent->left == d)
 					d->parent->left = e;
 				else
@@ -551,8 +588,8 @@ namespace ft
 			}
 			else
 			{
-				node_pointer	e = min()
-				color = d->
+				node_pointer	e = min();
+				//color = d->
 			}
 		}
 
@@ -560,7 +597,7 @@ namespace ft
 		void	insert_red_black_three(const value_type &val)
 		{
 			if(!(_root))//
-				insert('r', node_type(NULL), new_node(val))
+				insert('r', _root, new_node(val));
 			else
 			{
 				node_pointer	i = find_insert(val);
@@ -579,7 +616,7 @@ namespace ft
 			// sera quand meme plus simple avec un node_pointer
 
 			node_pointer	s;
-			while(i != root && i->color == BLACK)
+			while(i != _root && i->color == BLACK)
 			{
 				if(i == i->parent->left)
 				{
@@ -609,7 +646,7 @@ namespace ft
 						i->parent->color = BLACK;
 						s->parent->color = BLACK;
 						Left_rotate(i->parent);
-						i = root;
+						i = _root;
 					} 
 				}
 				else
@@ -631,16 +668,16 @@ namespace ft
 							Left_rotate(s);
 							s = i->parent->left;
 						}
-						s->color = x->parent->color;
+						s->color = i->parent->color;
 						i->parent->color = BLACK;
 						s->left->color = BLACK;
-						Right_rotate(x->parent);
-						x = _root;
+						Right_rotate(i->parent);
+						i = _root;
 					}
 
 				}
 			}
-			x->color = BLACK;	
+			i->color = BLACK;	
 		}
 
 
@@ -649,7 +686,7 @@ namespace ft
 		// CORRESPOND A INSERT FIX DONE
 		void		color_change(node_pointer i)// PAR DU PRINCIPE QUE L ON NE DEPLACE PAS LES POINTER QUAND =
 		{
-			node_pointer	j;// PAS UTILE DE FAIRE UN POINTER DE PLUS
+			node_pointer	u;// PAS UTILE DE FAIRE UN POINTER DE PLUS
 			while(i->parent->color == RED)
 			{
 				if(i->parent == i->parent->parent->right)
@@ -676,7 +713,7 @@ namespace ft
 				}
 				else
 				{
-					if(i->parent->parent->right->color = RED)
+					if(i->parent->parent->right->color == RED)
 					{
 						i->parent->parent->right->color = BLACK;
 						i->parent->color = BLACK;
@@ -697,7 +734,7 @@ namespace ft
 					}
 					
 				}
-				if(i == root)
+				if(i == _root)
 					break;
 			}
 			_root->color = BLACK;

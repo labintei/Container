@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 18:44:36 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/08 15:31:52 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/10 15:31:55 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,16 +47,16 @@ namespace ft
 			value_compare(value_compare const & src){(void)src;}
 			~value_compare(){}
 			value_compare &operator=(const value_compare &){return *this;}
-			bool operator()(const value_type &a, const value_type &b)const{return (key_comapre()(a.first,b.first);)}
+			bool operator()(const value_type &a, const value_type &b)const{return (key_compare()(a.first,b.first));}
 		};
-		// quand je creer le tree je vait modifier ca
-		//typedef typename ft::three<value_type, value_compare>					three;
-		// ok a deux compare
 		typedef typename ft::three<const value_type,const value_compare>			three;// par default fournit alloc
+
 		typedef typename three::iterator							iterator;
 		typedef typename three::const_iterator							const_iterator;
 		typedef typename three::reverse_iterator						reverse_iterator;
 		typedef typename three::const_reverse_iterator						const_reverse_iterator;
+
+
 		typedef typename three::node								node_type;
 		
 		typedef typename allocator_type::template rebind<Node>::other				node_allocator;// ?? 41gt
@@ -70,7 +70,7 @@ namespace ft
 
 		public:
 
-			explicit map(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()){}
+			explicit map(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()): _tree(), _comp(comp), _alloc(allocator_type(), _value_comp(value_compare())){}
 			template <class InputIterator>
 			map(InputIterator first, InputIterator last, const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()){}
 			map(const map& x){}
@@ -86,8 +86,8 @@ namespace ft
 			reverse_iterator rbegin(){return _tree.rbegin();}//DONE
 			const_reverse_iterator rbegin()const{return _tree.rbegin();}//DONE
 
-			reverse_iterator rend(){return tree.rend();}// DONE
-			const_reverse_iterator rend()const{return tree.rend();}//DONE
+			reverse_iterator rend(){return _tree.rend();}// DONE
+			const_reverse_iterator rend()const{return _tree.rend();}//DONE
 
 			bool		empty(){return _tree.empty();}// DONE
 			size_type	size(){return _tree.size();}// DONE
@@ -96,13 +96,13 @@ namespace ft
 			mapped_type&	operator[](const key_type& k)
 			{
 				value_type search = ft::make_pair(k, mapped_type());
-				value_type find = tree.find(search);
+				value_type find = _tree.find(search);
 				if(find)
 					return find->second;
 				else
 				{
 					_tree.insert(search);
-					return (tree.find(search)->second);
+					return (_tree.find(search)->second);
 				}
 			}//DONE
 
@@ -116,13 +116,9 @@ namespace ft
 			}
 
 			pair<iterator,bool>	insert(const value_type& val){}
-			{
-
-			}	
+	
 			iterator		insert(iterator pos, const value_type& val){}
-			{
 
-			}
 			template <class InputIterator>
 			void	insert(InputIterator first, InputIterator last){}
 
@@ -142,7 +138,7 @@ namespace ft
 			size_type	count(const key_type &k)const{}
 
 			iterator	lower_bound(const key_type& k){}
-			const_iterator	lower_bound(const key_type& k)const()
+			const_iterator	lower_bound(const key_type& k)const(){}
 
 			iterator	upper_bound(const key_type& k){}	
 			const_iterator	upper_bound(const key_type& k)const{}
