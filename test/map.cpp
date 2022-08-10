@@ -6,11 +6,12 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/04 15:29:37 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/10 13:42:59 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/10 19:51:56 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../map.hpp"
+#include "../tree.hpp"
 #include "../three_iterator.hpp"
 
 int	main(void)

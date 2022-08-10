@@ -6,13 +6,14 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 18:44:36 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/10 15:31:55 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/10 21:57:58 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MAP_HPP
 #define MAP_HPP
 
+#include "tree.hpp"
 #include "three_iterator.hpp"
 
 namespace ft
@@ -70,17 +71,17 @@ namespace ft
 
 		public:
 
-			explicit map(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()): _tree(), _comp(comp), _alloc(allocator_type(), _value_comp(value_compare())){}
+			explicit map(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()): _tree(), _comp(comp), _alloc(allocator_type(), _value_comp(value_compare())){}//ok
 			template <class InputIterator>
-			map(InputIterator first, InputIterator last, const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()){}
-			map(const map& x){}
-			~map(){}
+			map(InputIterator first, InputIterator last, const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()):_tree(), _comp(comp), _alloc(alloc), _value_comp(value_compare()){insert(first, last);}//ok
+			map(const map& x): _tree(x.tree), _comp(x.comp), _alloc(x._alloc), _value_comp(value_compare()){}//ok
+			/*a faire*/~map(){}
 
-			map& operator=(const map& x){}
+			map& operator=(const map& x){_tree = x._tree;_comp = x._comp;_alloc = x._alloc; _value_comp = x._value_comp;return *this}//ok
 
 			iterator begin(){return _tree.begin();}// DONE
 			const_iterator begin()const{return _tree.begin();}//DONE
-			iterator end(){return _three.end();}//DONE
+			iterator end(){return _tree.end();}//DONE
 			const_iterator end()const{return _tree.end();}//DONE
 
 			reverse_iterator rbegin(){return _tree.rbegin();}//DONE
@@ -107,47 +108,53 @@ namespace ft
 			}//DONE
 
 
+			// PEUT DONNER LE NILL em parametre d Iter ?? obligatoire
 			iterator	upper_bound(const key_type &k)
-			{// envoit un iterateur pointant sur le premier element dans le container ou la clee est considere comme allant apres k
-				for(iterator tmp = begin(); tmp != end(); tmp++)
-					if((key_comp()(k, tmp->first))// k est devenu < tmp->first ??
-						return tmp;
-				return end();
+			{
+				return iterator(_tree.upper_bound(ft::make_pair(k, mapped_type())), _tree._NIL);
 			}
 
-			pair<iterator,bool>	insert(const value_type& val){}
+			const_iterator	upper_bound(const key_type &k)const
+			{
+				return const_iterator(_tree.upper_bound(ft::make_pair(k,mapped_type())), _tree._NIL);
+			}
+
+			iterator	lower_bound(const key_type& k)
+			{
+				return iterator(_tree.upper_bound(ft::make_pair(k, mapped_type())), _tree._NIL);
+			}
+
+			const_iterator	lower_bound(const key_type& k)const
+			{
+				return const_iterator(_tree.upper_bound(ft::make_pair(k, mapped_type())), _tree._NIL);
+			}	
+
+			pair<iterator,bool>	insert(const value_type& val){tree.insert(val)}
 	
-			iterator		insert(iterator pos, const value_type& val){}
+			iterator		insert(iterator pos, const value_type& val){(void)pos;_tree.insert(val);}
 
 			template <class InputIterator>
-			void	insert(InputIterator first, InputIterator last){}
+			void	insert(InputIterator first, InputIterator last){_tree.insert(first,last);}
 
-			void		erase(iterator pos){}
-			size_type	erase(const key_type& k){}
-			void		erase(iterator first, iterator last){}
-			
-			void		swap(map& x){}
 
-			void		clear(){}
+			size_type	erase(const key_type& k){_tree.erase(ft::make_pair(k,mapped_type()));}
 
-			key_compare	key_comp()const{return _key;}
 
-			iterator	find(const key_type& k){}
-			const_iterator	find(const key_type& k)const{}
 
-			size_type	count(const key_type &k)const{}
+			//void		clear(){}
 
-			iterator	lower_bound(const key_type& k){}
-			const_iterator	lower_bound(const key_type& k)const(){}
+			key_compare	key_comp()const{return _tree.key_comp();}
 
-			iterator	upper_bound(const key_type& k){}	
-			const_iterator	upper_bound(const key_type& k)const{}
+			iterator	find(const key_type& k){return _tree.find();}
+			const_iterator	find(const key_type& k)const{return _tree.find();}
 
-			pair<const_iterator,const_iterator>	equal_range(const key_type& k)const{}
-			pair<iterator,iterator>			equal_range(const key_type& k){}
+			size_type	count(const key_type &k)const{return _tree.count(ft::make_pair(k, mapped_type()));}
+{}
 
-			allocator_type				get_allocator()const{return _alloc;}
+			pair<const_iterator,const_iterator>	equal_range(const key_type& k)const{return ft::make_pair(lower_bound(k), upper_bound(k));}
+			pair<iterator,iterator>			equal_range(const key_type& k){return ft::make_pair(lower_bound(k), upper_bound(k));}
 
+			allocator_type				get_allocator()const{return _tree.get_allocator();}
 		
 		// probleme je devrais mettre pleins de void	
 

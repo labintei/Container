@@ -6,14 +6,15 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/01 14:08:41 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/01 15:22:59 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/10 19:53:11 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef	SET_HPP
 #define SET_HPP
 
-#include "thrr_iterator.hpp"
+#include "tree.hpp"
+#include "three_iterator.hpp"
 
 namespace	ft
 {
