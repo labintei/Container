@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/27 16:55:25 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/10 21:53:28 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/11 16:46:01 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,8 @@
 #define BLACK 0
 #define RED 1
 
+
+// n a pas de NIL au niveau de son RED BALCK TREE
 namespace ft
 {
 
@@ -65,7 +67,7 @@ namespace ft
 		public:
 
 		//CONSTRUCTEUR
-		three(const allocator_type &alloc = allocator_type()):_root(), _comp(comp()), _alloc(alloc), _size(0), _NIL(node(){_root = _NIL;}
+		three(const allocator_type &alloc = allocator_type()):_root(), _comp(comp()), _alloc(alloc), _size(0){_NIL = _alloc.allocate(1); _NIL = node();_root = _NIL;}
 		three(const three &t):_root(), _comp(t.comp), _alloc(t._alloc), _size(t._size), _NIL(t._NIL){*this = t;}
 		//DESTRUCTEUR
 		~three(){}
@@ -112,37 +114,98 @@ namespace ft
 				insert(*a);
 		}
 
+		// delete_node bool renvoit 0 si pas d erase , renvoit 1 si erase
 		size_type	erase(const value_type& key)// prend un key_type voir ci problemet
 		{
-			
+			// terminer l algo de delete
+			iterator 	find = find(key);
+			if(find != _NIL)
+			{
+				// METTRE L ALGO POUR DELETE
+				return 1;
+			}
+			return 0;
 		}
 
 		size_type count(const value_type& key)const
-		{
-
+		{// renvoit 1 si trouve key sinon renvoit 0
+			return(find(key) != end());
 		}
 
+		// D abord faire find
 		iterator	find(const value_type & key)
 		{
-
+			iterator	i(min());
+			while(i != _NIL && *i != key)
+				i++;
+			return i;
 		}
 
-		const_iterator	find(const value_type& key)
+		const_iterator	find(const value_type& key)const
 		{
-
+			iterator	i(min());
+			while(i != _NIL && *i != key)
+				i++;
+			return i;
 		}
-		
-		std::pair<iterator,iterator>	equal_range(const value_type& key)
+
+		iterator	lower_bound(const value_type &val)
 		{
-
+			iterator	p(min());
+			for( ; p != end(); p++)
+			{
+				if(!_comp(*p,val))
+					return p;
+			}
+			return p;
 		}
 
-		std::pair<const_iterator, const_iterator>	equal_range(const value_type& key)const
-		{}
+		const_iterator	lower_bound(const value_type &val)const
+		{
+			iterator	p(min());
+			for(; p != end(); p++)
+			{
+				if(!_comp(*p, val))
+					return const_iterator(p);
+			}
+			return const_iterator(p);
+		}
 
-		key_compare	key_comp()const{return _comp;}
+		iterator	upper_bound(const value_type &val)
+		{
+			iterator	p(min());
+			for(; p != end(); p++)
+			{
+				if(comp(*p, val))
+					return p;
+			}
+			return p;
+		}
 
-		// ne pas faire value_compare car inside map
+		const_iterator	upper_bound(const value_type &val)const
+		{
+			iterator	p(min());
+			for(; p != end(); p++)
+			{
+				if(comp(*p, val))
+					return const_iterator(p);
+			}
+			return const_iterator(p);
+		}
+
+		// si equal range ici
+
+		pair<iterator,iterator>			equal_range(const value_type &val)
+		{
+			return ft::make_pair(lower_bound(val), upper_bound(val));
+		}
+
+		pair<const_iterator,const_iterator>	equal_range(const value_type &val)const
+		{
+			return ft::make_pair(lower_bound(val), upper_bound(val));
+		}
+
+		comp		key_comp()const{return _comp;}
 
 
 //	PARTIE COMMUNE
