@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/27 16:55:25 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/11 16:46:01 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/11 16:49:36 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ namespace ft
 		public:
 
 		//CONSTRUCTEUR
-		three(const allocator_type &alloc = allocator_type()):_root(), _comp(comp()), _alloc(alloc), _size(0){_NIL = _alloc.allocate(1); _NIL = node();_root = _NIL;}
+		three(const allocator_type &alloc = allocator_type()):_root(), _comp(comp()), _alloc(alloc), _size(0){_NIL = _alloc.allocate(1); _NIL = ft::Node<value_type>();_root = _NIL;}
 		three(const three &t):_root(), _comp(t.comp), _alloc(t._alloc), _size(t._size), _NIL(t._NIL){*this = t;}
 		//DESTRUCTEUR
 		~three(){}

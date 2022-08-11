@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/27 16:55:25 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/11 16:42:28 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/11 16:57:41 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ namespace ft
 		Node*		right;
 
 		Node():val() , color(BLACK),parent(NULL),left(NULL),right(NULL){};// creer un NILL evitera les segfaults 
+		Node(value_type &s, Node* NIL): val(s), color(RED), parent(NIL), left(NIL), right(NIL){};
 		Node(value_type &s): val(s), color(RED), parent(Node()), left(Node()), right(Node()){};
 	};
 
