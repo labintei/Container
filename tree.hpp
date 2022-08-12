@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/27 16:55:25 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/11 16:49:36 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/12 15:05:36 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,9 @@ namespace ft
 		typedef typename ft::Node<value_type>			node;
 		typedef node*						node_pointer;
 		typedef	size_t						size_type;
-		typedef	ft::three_iterator<value_type>			iterator;
-		typedef ft::three_iterator<const value_type>		const_iterator;
+		// Dans ce que fait Georges peut etre change iterator
+		typedef	ft::three_iterator<node>			iterator;
+		typedef ft::three_iterator<const node>			const_iterator;
 		typedef ft::reverse_iterator<iterator>			reverse_iterator;
 		typedef ft::reverse_iterator<const_iterator>		const_reverse_iterator;
 		typedef std::ptrdiff_t					difference_type;
@@ -62,13 +63,12 @@ namespace ft
 		comp		_comp;
 		allocator_type	_alloc;
 		size_type	_size;
-		node_pointer	_NIL;
 
 		public:
 
 		//CONSTRUCTEUR
-		three(const allocator_type &alloc = allocator_type()):_root(), _comp(comp()), _alloc(alloc), _size(0){_NIL = _alloc.allocate(1); _NIL = ft::Node<value_type>();_root = _NIL;}
-		three(const three &t):_root(), _comp(t.comp), _alloc(t._alloc), _size(t._size), _NIL(t._NIL){*this = t;}
+		three(const allocator_type &alloc = allocator_type()):_root(), _comp(comp()), _alloc(alloc), _size(0){_root = NULL;}
+		three(const three &t):_root(), _comp(t.comp), _alloc(t._alloc), _size(t._size){*this = t;}
 		//DESTRUCTEUR
 		~three(){}
 		//OPERATOR=
@@ -78,9 +78,9 @@ namespace ft
 			insert(t.begin(), t.end());
 		}
 		
-		bool		empty(){return _size == 0;}
+		bool		empty()const{return _size == 0;}
 		
-		size_type	size(){return _size;}
+		size_type	size()const{return _size;}
 		
 		size_type	max_size()const{return _alloc.max_size();}
 		
@@ -98,11 +98,19 @@ namespace ft
 
 		void	clear(){}// est reutiliser dans d autre fonctions
 
+
+		// na pas de insert qui retourne un iterator
+/*
+		iterator	insert(const value_type &val)
+		{
+			return (iterator(find_insert(val)));
+		}*/
+
 		ft::pair<iterator,bool>	insert(const value_type &val)
 		{
 			size_type	n = size();
 			node_pointer	res = find_insert(val);
-			if(res == _NIL)
+			if(res == NULL)
 				return ft::make_pair(value_type(), (n != size()));
 			return ft::make_pair(res->val, (n != size()));
 		}
@@ -119,7 +127,7 @@ namespace ft
 		{
 			// terminer l algo de delete
 			iterator 	find = find(key);
-			if(find != _NIL)
+			if(find != NULL)
 			{
 				// METTRE L ALGO POUR DELETE
 				return 1;
@@ -136,7 +144,7 @@ namespace ft
 		iterator	find(const value_type & key)
 		{
 			iterator	i(min());
-			while(i != _NIL && *i != key)
+			while(i != NULL && *i != key)
 				i++;
 			return i;
 		}
@@ -144,7 +152,7 @@ namespace ft
 		const_iterator	find(const value_type& key)const
 		{
 			iterator	i(min());
-			while(i != _NIL && *i != key)
+			while(i != NULL && *i != key)
 				i++;
 			return i;
 		}
@@ -162,13 +170,13 @@ namespace ft
 
 		const_iterator	lower_bound(const value_type &val)const
 		{
-			iterator	p(min());
+			const_iterator	p(min());
 			for(; p != end(); p++)
 			{
 				if(!_comp(*p, val))
 					return const_iterator(p);
 			}
-			return const_iterator(p);
+			return p;
 		}
 
 		iterator	upper_bound(const value_type &val)
@@ -176,7 +184,8 @@ namespace ft
 			iterator	p(min());
 			for(; p != end(); p++)
 			{
-				if(comp(*p, val))
+				// ok ne s agit peut etre pas de value_compare
+				if(comp()(*p, val))
 					return p;
 			}
 			return p;
@@ -184,13 +193,13 @@ namespace ft
 
 		const_iterator	upper_bound(const value_type &val)const
 		{
-			iterator	p(min());
+			const_iterator	p(min());
 			for(; p != end(); p++)
 			{
-				if(comp(*p, val))
+				if(comp()(*p, val))
 					return const_iterator(p);
 			}
-			return const_iterator(p);
+			return p;
 		}
 
 		// si equal range ici
@@ -211,7 +220,7 @@ namespace ft
 //	PARTIE COMMUNE
 		void	clear_branch(node_pointer	x)
 		{
-			if(x == _NIL)
+			if(x == NULL)
 				x = _root;
 			if(x->NIL == false)
 			{
@@ -237,25 +246,41 @@ namespace ft
 					branch_copy(src->right, to->copy->right);
 			}
 		}*/
-		
+	
+		const_iterator	min()const
+		{
+			const_iterator	i(_root);	
+			while(i._current->left != NULL)
+				i = const_iterator(i._current->left);
+			return i;
+		}
+
+		const_iterator max()const
+		{
+			const_iterator i(_root);
+			while(i._current->right != NULL)
+				i = const_iterator(i._current->right);
+			return i;
+		}
+	
 		iterator	min()
 		{
 			iterator	i(_root);
-			while(i->_current->left)
-				i = iterator(i->_current->left);
+			while(i._current->left != NULL)
+				i = iterator(i._current->left);
 			return i;
 		}
 		iterator	max()
 		{
 			iterator	i(_root);
-			while(i->_current->right)
-				i = iterator(i->_current->right);
+			while(i._current->right != NULL)
+				i = iterator(i._current->right);
 			return i;
 		}
 
 		value_type	find_val(const value_type &val)
 		{
-			return (find_iterator(val)->_current->val);// JUSTE POUR CHANGER LE TYPAGE
+			return (find_iterator(val)._current->val);// JUSTE POUR CHANGER LE TYPAGE
 		}
 
 		// Operation Left_rotate
@@ -353,7 +378,7 @@ namespace ft
 
 
 
-		node_pointer	insert(node_pointer root,node_pointer neww, char d)
+		node_pointer	insert(char d, node_pointer root,node_pointer neww)
 		{
 			node_pointer	tmp;
 
@@ -391,8 +416,10 @@ namespace ft
 		node_pointer		new_node(const value_type &val)
 		{
 			node_pointer	i = _alloc.allocate(1);
-			i->left = _NIL;i->right = _NIL;i->parent = _NIL;
-			_alloc.construct(&i,node_type(val));
+			i->left = NULL;i->right = NULL;i->parent = NULL;
+
+			_alloc.construct(i,node(val));
+
 			return i;
 		}
 
@@ -402,25 +429,25 @@ namespace ft
 
 			iterator	i(_root);
 			iterator	s;
-			while(i != _NIL)
+			while(i != NULL)
 			{
 				s = i;
-				if(val < i->_current->val)
+				if(val < (*i))
 				{
-					if(i == min() || val > (s--)->_current->val)
-						return(insert('L',i->_current, new_node(val)));
+					if(i == min() || val > (*(--s)))// devrait faire des seg
+						return(insert('L', i._current, new_node(val)));
 					i--;
 				}
-				if(val > i->_current->val)
+				if(val > (*i))
 				{
-					if(i == max() || val > (s++)->current->val)
-						return(insert('R',i->_current, new_node(val)));
+					if(i == max() || val < (*(++s)))// devrait faire des seg
+						return(insert('R', i._current, new_node(val)));
 					i++;
 				}
-				if(val == i->_current->val)
-					return(insert('e',i->_current, _NIL));
+				if(val == (*i))
+					return(insert('e',i._current, NULL));
 			}
-			return i;
+			return i._current;
 
 		}
 
@@ -443,7 +470,7 @@ namespace ft
 		{
 	//		bool		color = d->color;
 		
-			if(d->left == _NIL)
+			if(d->left == NULL)
 			{
 					node_pointer	e = d->left;
 					d->right = e;
@@ -454,7 +481,7 @@ namespace ft
 						d->parent->right = e;
 					//delete_node(node_pointer); ??
 			}
-			else if(d->right == _NIL)
+			else if(d->right == NULL)
 			{
 				node_pointer e;// ??? 
 				if(d->parent->left == d)

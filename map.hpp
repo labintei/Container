@@ -6,7 +6,7 @@
 /*   By: labintei <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/07/28 18:44:36 by labintei          #+#    #+#             */
-/*   Updated: 2022/08/11 16:34:01 by labintei         ###   ########.fr       */
+/*   Updated: 2022/08/12 15:09:20 by labintei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ namespace ft
 
 			explicit map(const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()): _tree(), _comp(comp), _alloc(alloc), _value_comp(value_compare()){}//ok
 			template <class InputIterator>
-			map(InputIterator first, InputIterator last, const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()):_tree(), _comp(comp), _alloc(alloc), _value_comp(value_compare()){insert(first, last);}//ok
+			map(InputIterator first, InputIterator last, const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()):_tree(), _comp(comp), _alloc(alloc), _value_comp(value_compare()){_tree.insert(first, last);}//ok
 			map(const map& x): _tree(x.tree), _comp(x.comp), _alloc(x._alloc), _value_comp(value_compare()){}//ok
 			/*a faire*/~map(){}
 
@@ -93,9 +93,9 @@ namespace ft
 			reverse_iterator rend(){return _tree.rend();}// DONE
 			const_reverse_iterator rend()const{return _tree.rend();}//DONE
 
-			bool		empty(){return _tree.empty();}// DONE
-			size_type	size(){return _tree.size();}// DONE
-			size_type	max_size(){return _tree.max_size();}// DONE
+			bool		empty()const{return _tree.empty();}// DONE
+			size_type	size()const{return _tree.size();}// DONE
+			size_type	max_size()const{return _tree.max_size();}// DONE
 
 			mapped_type&	operator[](const key_type& k)
 			{
@@ -114,27 +114,32 @@ namespace ft
 			// PEUT DONNER LE NILL em parametre d Iter ?? obligatoire
 			iterator	upper_bound(const key_type &k)
 			{
-				return iterator(_tree.upper_bound(ft::make_pair(k, mapped_type())), _tree._NIL);
+				//return iterator(_tree.upper_bound(ft::make_pair(k, mapped_type())));
+				return _tree.upper_bound(ft::make_pair(k, mapped_type()));
 			}
 
 			const_iterator	upper_bound(const key_type &k)const
 			{
-				return const_iterator(_tree.upper_bound(ft::make_pair(k,mapped_type())), _tree._NIL);
+				//return const_iterator(_tree.upper_bound(ft::make_pair(k,mapped_type())));
+				return _tree.upper_bound(ft::make_pair(k, mapped_type()));
 			}
 
 			iterator	lower_bound(const key_type& k)
 			{
-				return iterator(_tree.upper_bound(ft::make_pair(k, mapped_type())), _tree._NIL);
+				//return iterator(_tree.upper_bound(ft::make_pair(k, mapped_type())));
+			
+				return _tree.lower_bound(ft::make_pair(k, mapped_type()));
 			}
 
 			const_iterator	lower_bound(const key_type& k)const
 			{
-				return const_iterator(_tree.upper_bound(ft::make_pair(k, mapped_type())), _tree._NIL);
+				//return const_iterator(_tree.upper_bound(ft::make_pair(k, mapped_type())));
+				return _tree.lower_bound(ft::make_pair(k, mapped_type()));
 			}	
 
 			pair<iterator,bool>	insert(const value_type& val){_tree.insert(val);}
 	
-			iterator		insert(iterator pos, const value_type& val){(void)pos;_tree.insert(val);}
+			iterator		insert(iterator pos, const value_type& val){(void)pos;return ((_tree.insert(val))->first);}// on peut egalement le faire comme ca
 
 			template <class InputIterator>
 			void	insert(InputIterator first, InputIterator last){_tree.insert(first,last);}
